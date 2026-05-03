@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanceAI — Personalized Wealth Intelligence</title>
+  <meta name="description" content="Discover your personalized financial projections powered by AI. See exactly how much you could grow your wealth and connect with certified financial advisors." />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    if (typeof Chart === 'undefined') {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+</head>
+<body>
+
+<div class="bg-orbs" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon" aria-hidden="true">₹</div>
+      <div>
+        <div class="logo-text">FinanceAI</div>
+        <div class="logo-sub">Wealth Intelligence</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div id="server-status" class="live-badge" title="Backend server status">
+        <span class="live-dot" id="status-dot"></span>
+        <span id="status-text">Connecting…</span>
+      </div>
+      <button id="theme-toggle" class="theme-btn" title="Toggle theme">☀️</button>
+      <button id="restart-btn" class="restart-btn">↺ Restart</button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- CHAT WINDOW (shown immediately — no API gate, key is in backend .env) -->
+    <section id="chat-window" class="active" aria-label="Finance AI Chat" aria-live="polite">
+
+      <div class="progress-header" id="progress-header">
+        <div class="progress-label">
+          <span id="progress-label-text">Gathering your profile</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="messages" id="messages" role="log">
+        <div class="typing-indicator" id="typing-indicator">
+          <div class="bot-avatar">✦</div>
+          <div class="typing-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-row">
+          <input id="chat-input" class="chat-input" type="text" placeholder="Type your answer..." autocomplete="off" />
+          <button id="send-btn" class="send-btn" disabled>➤</button>
+        </div>
+        <div id="chips-container" class="chips-row"></div>
+        <p class="input-hint" id="input-hint"></p>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  FinanceAI — Frontend Test Harness
+//  Communicates exclusively with the backend API at /api/chat
+//  No Groq key needed here — key lives in backend .env
+// ═══════════════════════════════════════════════════════════
+
+const API_BASE = '/api/chat';
+
+// ─── State ───────────────────────────────────────────────
+let sessionId    = null;
+let currentPhase = 'collect';
+let currentStep  = null;    // step metadata from backend
+let projChart    = null;
+let isWaiting    = false;   // true while awaiting bot response
+
+// ─── API Client ──────────────────────────────────────────
+async function apiPost(path, body = {}) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
+  });
+
+  // Guard against non-JSON responses (e.g. from a Python dev server on wrong port)
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Server at port ${location.port || '80'} returned non-JSON (${res.status}). Make sure you're on http://localhost:3000 — not port 5678 or another port.`);
+  }
+
+  const data = await res.json();
+  if (!res.ok) throw Object.assign(new Error(data.error || 'API error'), { status: res.status, code: data.code });
+  return data;
+}
+
+async function apiGet(path) {
+  const res = await fetch(`${API_BASE}${path}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'API error');
+  return data;
+}
+
+// ─── Server Status Badge ─────────────────────────────────
+function setServerStatus(state) {
+  // state: 'connecting' | 'connected' | 'error'
+  const dot  = document.getElementById('status-dot');
+  const text = document.getElementById('status-text');
+  if (!dot || !text) return;
+  const map = {
+    connecting: { color: '#f59e0b', label: 'Connecting…' },
+    connected:  { color: '#22c55e', label: 'Connected' },
+    error:      { color: '#ef4444', label: 'Server offline' },
+  };
+  const s = map[state] || map.connecting;
+  dot.style.background  = s.color;
+  dot.style.boxShadow   = `0 0 6px ${s.color}`;
+  text.textContent = s.label;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function formatINR(n) {
+  if (!n && n !== 0) return '0';
+  return new Intl.NumberFormat('en-IN').format(Math.round(n));
+}
+
+function formatCrLakh(n) {
+  if (n >= 1e7) return `₹${(n/1e7).toFixed(2)} Cr`;
+  if (n >= 1e5) return `₹${(n/1e5).toFixed(1)}L`;
+  return `₹${formatINR(n)}`;
+}
+
+function parseMarkdown(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/_(.*?)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br/>');
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function scrollToBottom() {
+  const msgs = document.getElementById('messages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ─── Progress Bar ────────────────────────────────────────
+function setProgress(pct, label) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent  = pct + '%';
+  document.querySelector('.progress-track').setAttribute('aria-valuenow', pct);
+  if (label) document.getElementById('progress-label-text').textContent = label;
+}
+
+// ─── Typing Indicator ────────────────────────────────────
+function showTyping(show) {
+  document.getElementById('typing-indicator').classList.toggle('active', show);
+  scrollToBottom();
+}
+
+// ─── Add Messages ─────────────────────────────────────────
+function addBotMessage(html) {
+  const msgs    = document.getElementById('messages');
+  const typing  = document.getElementById('typing-indicator');
+  const div     = document.createElement('div');
+  div.className = 'msg bot';
+  div.innerHTML = `<div class="bot-avatar">✦</div><div class="bubble">${parseMarkdown(html)}</div>`;
+  msgs.insertBefore(div, typing);
+  showTyping(false);
+  scrollToBottom();
+}
+
+function addUserMessage(text) {
+  const msgs    = document.getElementById('messages');
+  const typing  = document.getElementById('typing-indicator');
+  const div     = document.createElement('div');
+  div.className = 'msg user';
+  div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+  msgs.insertBefore(div, typing);
+  scrollToBottom();
+}
+
+function addElement(el) {
+  const msgs   = document.getElementById('messages');
+  const typing = document.getElementById('typing-indicator');
+  msgs.insertBefore(el, typing);
+  scrollToBottom();
+}
+
+// ─── Chips ────────────────────────────────────────────────
+function showChips(choices, displayMap) {
+  const container = document.getElementById('chips-container');
+  const input     = document.getElementById('chat-input');
+  const btn       = document.getElementById('send-btn');
+  container.innerHTML = '';
+  choices.forEach(val => {
+    const label = displayMap ? (displayMap[val] || val) : val;
+    const chip  = document.createElement('button');
+    chip.className   = 'chip';
+    chip.textContent = label;
+    chip.onclick     = () => sendMessage(val, label);
+    container.appendChild(chip);
+  });
+  input.style.display = 'none';
+  btn.style.display   = 'none';
+}
+
+function clearChips() {
+  document.getElementById('chips-container').innerHTML = '';
+  document.getElementById('chat-input').style.display  = '';
+  document.getElementById('chat-input').disabled       = false;
+  document.getElementById('send-btn').style.display    = '';
+}
+
+function setHint(text) {
+  document.getElementById('input-hint').textContent = text || '';
+}
+
+// ─── Apply step metadata from API ────────────────────────
+function applyStep(step) {
+  if (!step) return;
+  currentStep = step;
+  const input = document.getElementById('chat-input');
+  clearChips();
+
+  if (step.type === 'choice' && step.choices) {
+    showChips(step.choices, step.display);
+    setHint(step.hint || '');
+    document.getElementById('send-btn').disabled = true;
+  } else {
+    input.type        = 'text';
+    input.placeholder = step.hint || 'Type your answer...';
+    input.inputMode   = step.type === 'number' ? 'decimal' : 'text';
+    input.value       = '';
+    input.disabled    = false;
+    input.focus();
+    document.getElementById('send-btn').disabled = false;
+    setHint(step.hint || '');
+  }
+}
+
+// ─── Send Message to Backend ─────────────────────────────
+async function sendMessage(raw, displayLabel) {
+  if (isWaiting) return;
+  const text = (raw || document.getElementById('chat-input').value).trim();
+  if (!text) return;
+
+  isWaiting = true;
+  document.getElementById('chat-input').value = '';
+  document.getElementById('send-btn').disabled = true;
+
+  addUserMessage(displayLabel || text);
+  clearChips();
+  showTyping(true);
+  await sleep(300);
+
+  try {
+    const data = await apiPost('/message', { sessionId, message: text });
+    handleResponse(data);
+  } catch (err) {
+    showTyping(false);
+    if (err.code === 'SESSION_EXPIRED') {
+      addBotMessage("⚠️ Your session expired. Starting a fresh one...");
+      await sleep(1000);
+      await initSession();
+    } else {
+      addBotMessage(`⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
+    }
+    isWaiting = false;
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+// ─── Handle API Response ─────────────────────────────────
+function handleResponse(data) {
+  showTyping(false);
+  currentPhase = data.phase;
+  isWaiting    = false;
+
+  // Progress update
+  if (typeof data.progress === 'number') {
+    const label = data.progress === 100 ? 'Analysis complete!' :
+                  data.progress > 60    ? 'Almost there…' : 'Gathering your profile';
+    setProgress(data.progress, label);
+  }
+
+  // Main message
+  if (data.message) addBotMessage(data.message);
+
+  // Apply next step (if still collecting)
+  if (data.phase === 'collect' && data.step) {
+    applyStep(data.step);
+    return;
+  }
+
+  // Analysis arrived — render full results UI
+  if (data.analysis) {
+    document.getElementById('progress-header').style.display = 'none';
+    clearChips();
+    setTimeout(() => renderAnalysis(data.analysis, data.profile), 400);
+    return;
+  }
+
+  // Freeform / advisor phase — just enable input
+  if (['freeform', 'hook', 'advisor'].includes(data.phase)) {
+    const input = document.getElementById('chat-input');
+    input.placeholder = 'Ask me anything about your finances...';
+    input.disabled    = false;
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+// ─── Render Analysis Results ──────────────────────────────
+function renderAnalysis(a, profile) {
+  const p = a.projections;
+
+  // 1. Chart card
+  addElement(buildChartCard(p, a.investable_amount, profile));
+
+  // 2. Insights
+  setTimeout(() => {
+    addBotMessage('🔍 **3 insights specific to your profile:**');
+    setTimeout(() => {
+      addElement(buildInsights(a.insights));
+
+      // 3. Gap banner
+      setTimeout(() => {
+        addElement(buildGapBanner(a));
+
+        // 4. Locked section
+        setTimeout(() => {
+          addElement(buildLockedSection(a));
+
+          // 5. Hook CTA
+          setTimeout(() => {
+            addElement(buildHookCTA(a, profile));
+          }, 400);
+        }, 300);
+      }, 300);
+    }, 200);
+  }, 600);
+}
+
+// ─── Chart Card ──────────────────────────────────────────
+function buildChartCard(p, investable, profile) {
+  const wrapper    = document.createElement('div');
+  wrapper.className = 'msg bot';
+  wrapper.style.cssText = 'max-width:100%;width:100%';
+
+  const isDark     = document.documentElement.getAttribute('data-theme') !== 'light';
+  const textColor  = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
+  const gridColor  = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+
+  wrapper.innerHTML = `
+    <div class="projection-card" style="width:100%">
+      <div class="proj-header">
+        <div class="proj-title">📈 Your Wealth Projection</div>
+        <span class="proj-badge">AI Generated</span>
+      </div>
+      <div class="chart-wrap"><canvas id="projChart" role="img" aria-label="Wealth projection chart"></canvas></div>
+      <div class="proj-stats">
+        <div class="stat-box">
+          <div class="stat-label">Current Path (5yr)</div>
+          <div class="stat-value count-up" data-target="${p.current_5yr}">₹0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Optimized (5yr)</div>
+          <div class="stat-value count-up" data-target="${p.optimized_5yr}" style="color:#22c55e">₹0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Monthly SIP</div>
+          <div class="stat-value" style="color:#f5c518">₹${formatINR(investable)}</div>
+        </div>
+      </div>
+    </div>`;
+
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('projChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (projChart) { projChart.destroy(); projChart = null; }
+
+    function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+    const s = profile?.savings || 0;
+
+    projChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: ['Now', '1Y', '2Y', '3Y', '4Y', '5Y'],
+        datasets: [
+          {
+            label: 'Current Path',
+            data:  [s, lerp(s,p.current_3yr,0.33), lerp(s,p.current_3yr,0.66), p.current_3yr, lerp(p.current_3yr,p.current_5yr,0.5), p.current_5yr],
+            borderColor: '#4b5280', tension: 0.4, fill: false, pointRadius: 3, borderWidth: 2
+          },
+          {
+            label: 'Optimized Path',
+            data:  [s, lerp(s,p.optimized_3yr,0.33), lerp(s,p.optimized_3yr,0.66), p.optimized_3yr, lerp(p.optimized_3yr,p.optimized_5yr,0.5), p.optimized_5yr],
+            borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', tension: 0.4, fill: true, pointRadius: 3, borderWidth: 2.5
+          },
+          {
+            label: 'With Advisor',
+            data:  [s, null, null, null, null, p.max_10yr / 2],
+            borderColor: '#f5c518', backgroundColor: 'rgba(245,197,24,0.08)', tension: 0.4, fill: false, pointRadius: 3, borderWidth: 2, borderDash: [5,5]
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 1200, easing: 'easeInOutQuart' },
+        plugins: {
+          legend: { position: 'top', labels: { color: textColor, usePointStyle: true, boxHeight: 6, font: { size: 11 } } },
+          tooltip: {
+            backgroundColor: 'rgba(5,7,15,0.9)',
+            borderColor: 'rgba(245,197,24,0.3)', borderWidth: 1,
+            titleColor: '#f5c518', bodyColor: 'rgba(240,242,250,0.8)',
+            callbacks: { label: ctx => ` ₹${formatINR(ctx.raw)}` }
+          }
+        },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
+          y: {
+            grid: { color: gridColor },
+            ticks: { color: textColor, font: { size: 10 }, callback: v => v >= 1e7 ? `₹${(v/1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v/1e5).toFixed(0)}L` : `₹${formatINR(v)}` }
+          }
+        },
+        interaction: { intersect: false, mode: 'index' }
+      }
+    });
+    // Count-up animation
+    wrapper.querySelectorAll('.count-up').forEach(el => {
+      const target = parseInt(el.dataset.target) || 0;
+      const dur = 1400; const start = performance.now();
+      const tick = now => {
+        const p = Math.min((now - start) / dur, 1);
+        el.textContent = '₹' + formatINR(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  });
+
+  return wrapper;
+}
+
+// ─── Insights ─────────────────────────────────────────────
+function buildInsights(insights) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.style.cssText = 'max-width:100%;width:100%';
+  const grid = document.createElement('div');
+  grid.className = 'insights-grid';
+  insights.forEach((ins, i) => {
+    const card = document.createElement('div');
+    card.className = 'insight-card';
+    card.style.animationDelay = `${i * 0.15}s`;
+    card.innerHTML = `
+      <div class="insight-title">${escapeHtml(ins.title)}</div>
+      <div class="insight-desc">${escapeHtml(ins.description)}</div>
+      <div class="insight-impact">${escapeHtml(ins.impact)}</div>`;
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+// ─── Gap Banner ───────────────────────────────────────────
+function buildGapBanner(a) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.style.cssText = 'max-width:100%;width:100%';
+  const shortfallText = a.retirement_shortfall > 0
+    ? `Retirement shortfall: <strong>${formatCrLakh(a.retirement_shortfall)}</strong>.`
+    : `You're on track — but optimization adds <strong>${formatCrLakh(a.wealth_gap)}</strong> more.`;
+  wrap.innerHTML = `
+    <div class="gap-banner">
+      <div class="gap-icon">⚠️</div>
+      <div class="gap-text">
+        Wealth gap detected: <strong>${formatCrLakh(a.wealth_gap)}</strong>. ${shortfallText}
+        Key risk: ${escapeHtml(a.key_risk || 'Inflation erosion on idle savings')}.
+      </div>
+    </div>`;
+  return wrap;
+}
+
+// ─── Locked 10-Year Blueprint ─────────────────────────────
+function buildLockedSection(a) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.style.cssText = 'max-width:100%;width:100%';
+  wrap.innerHTML = `
+    <div class="locked-section">
+      <div class="locked-content">
+        <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🔮 Your 10-Year Wealth Blueprint</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem">
+          <div class="stat-box"><div class="stat-label">10Y Optimized</div><div class="stat-value">${formatCrLakh(a.projections.optimized_10yr)}</div></div>
+          <div class="stat-box"><div class="stat-label">Max Potential</div><div class="stat-value">${formatCrLakh(a.projections.max_10yr)}</div></div>
+        </div>
+        <div style="font-size:0.82rem;color:var(--text-secondary)">Personalised ladder · Tax optimisation · Rebalancing calendar · Goal milestones</div>
+      </div>
+      <div class="locked-overlay">
+        <div class="lock-icon">🔒</div>
+        <div class="lock-text">Full blueprint unlocked with your advisor session</div>
+      </div>
+    </div>`;
+  return wrap;
+}
+
+// ─── Hook CTA ─────────────────────────────────────────────
+function buildHookCTA(a, profile) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.style.cssText = 'max-width:100%;width:100%';
+  const surplus = a.monthly_surplus || 0;
+
+  const cta = document.createElement('div');
+  cta.className = 'hook-cta';
+  cta.id = 'hook-cta';
+  cta.innerHTML = `
+    <span class="hook-emoji">💡</span>
+    <h2 class="hook-headline">${escapeHtml(a.hook_line || `Your ₹${formatINR(surplus)}/mo surplus could build ${formatCrLakh(a.projections.optimized_10yr)} in 10 years.`)}</h2>
+    <p class="hook-subtitle">
+      Most people your age never realise this gap exists. A certified advisor builds you a custom roadmap —
+      turning your <em>₹${formatINR(a.investable_amount)}/month</em> into a compounding wealth engine.<br/><br/>
+      <strong>Would you like a personalized financial plan?</strong>
+    </p>
+    ${a.quick_wins && a.quick_wins.length ? `
+      <div style="text-align:left;margin-bottom:1.25rem;border-top:1px solid var(--border);padding-top:1rem">
+        <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem">⚡ Quick Wins This Month</div>
+        ${a.quick_wins.map(w => `<div style="font-size:0.8rem;color:var(--text-secondary);padding:0.3rem 0;border-bottom:1px solid var(--border-gold);opacity:0.8">→ ${escapeHtml(w)}</div>`).join('')}
+      </div>` : ''}
+    <div class="hook-buttons">
+      <button class="btn-cta" id="yes-plan-btn">✨ Yes, show me how →</button>
+      <button class="btn-skip" id="skip-plan-btn">Maybe later</button>
+    </div>`;
+
+  cta.querySelector('#yes-plan-btn').onclick = () => {
+    cta.style.opacity = '0.5';
+    cta.style.pointerEvents = 'none';
+    sendMessage('Yes, I want a personalised financial plan', 'Yes, show me how →');
+    setTimeout(() => showAdvisorCard(a, profile), 1800);
+  };
+  cta.querySelector('#skip-plan-btn').onclick = () => {
+    sendMessage('Maybe later', 'Maybe later');
+    enableFreeChat('Ask me anything about your finances...');
+  };
+
+  wrap.appendChild(cta);
+  return wrap;
+}
+
+// ─── Advisor Card ─────────────────────────────────────────
+function showAdvisorCard(a, profile) {
+  const specialisations = {
+    retirement: 'Retirement Planning & NPS Strategy',
+    house:      'Real Estate & Home Loan Advisory',
+    wealth:     'Portfolio Management & Wealth Growth',
+    education:  'Education Planning & Child Investments',
+  };
+  const riskDesc = {
+    conservative: 'debt-focused and capital-protection strategies',
+    moderate:     'balanced equity-debt portfolios',
+    aggressive:   'high-growth equity and small-cap portfolios',
+  };
+  const spec = specialisations[profile?.goal] || 'Comprehensive Wealth Planning';
+  const risk = riskDesc[profile?.risk] || 'diversified portfolios';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.style.cssText = 'max-width:100%;width:100%';
+  wrap.innerHTML = `
+    <div class="advisor-card">
+      <div class="advisor-top">
+        <div class="advisor-avatar">👨‍💼</div>
+        <div>
+          <div class="advisor-name">Rajesh Mehta</div>
+          <div class="advisor-title">${spec}</div>
+          <div class="advisor-creds">
+            <span class="cred-badge">CFP®</span>
+            <span class="cred-badge">CFA</span>
+            <span class="cred-badge">SEBI RIA</span>
+            <span class="cred-badge">12+ Yrs</span>
+          </div>
+        </div>
+      </div>
+      <div class="advisor-divider"></div>
+      <div class="advisor-spec">
+        Rajesh specialises in <strong>${spec.toLowerCase()}</strong> with a focus on <strong>${risk}</strong>.
+        He has helped <strong>200+ clients</strong> grow wealth systematically — avg. portfolio CAGR of <strong>18.4%</strong> over 5 years.
+      </div>
+      <div class="advisor-cta-title">📲 Connect Now</div>
+      <div class="advisor-actions">
+        <a href="https://wa.me/919876543210?text=${encodeURIComponent(`Hi Rajesh! My FinanceAI profile: Age ${profile?.age}, Income ₹${formatINR(profile?.income)}/mo, Goal: ${profile?.goal}. I'd love to discuss a personalised plan.`)}"
+           target="_blank" class="action-btn whatsapp">💬 WhatsApp</a>
+        <a href="tel:+919876543210" class="action-btn call">📞 Call Now</a>
+        <a href="mailto:rajesh.mehta@financeai.in?subject=Financial Plan Enquiry&body=Hi Rajesh,%0A%0AMy FinanceAI profile:%0AAge: ${profile?.age}%0AIncome: ₹${formatINR(profile?.income)}/month%0AGoal: ${profile?.goal}%0ARisk: ${profile?.risk}%0A%0APlease reach out to discuss a plan."
+           class="action-btn email">✉️ Email</a>
+        <a href="#" class="action-btn linkedin">🔗 LinkedIn</a>
+      </div>
+      <button class="book-btn" onclick="window.open('https://calendly.com','_blank');addBotMessage('✅ Session booking opened! Rajesh will confirm shortly.')">
+        📅 Book Free 30-Min Session →
+      </button>
+      <div class="advisor-note"><span>✓</span> Free consultation · No obligation · ₹0 cost</div>
+    </div>`;
+
+  addElement(wrap);
+
+  setTimeout(() => {
+    addBotMessage("☝️ Rajesh is available **Mon–Sat, 10AM–7PM IST**.\n\nYou can ask me any financial questions in the meantime. 😊");
+    enableFreeChat('Ask me anything about your finances...');
+  }, 600);
+}
+
+// ─── Free Chat ────────────────────────────────────────────
+function enableFreeChat(placeholder) {
+  const input = document.getElementById('chat-input');
+  const btn   = document.getElementById('send-btn');
+  input.placeholder = placeholder || 'Ask me anything...';
+  input.disabled    = false;
+  btn.disabled      = false;
+  isWaiting         = false;
+}
+
+// ─── Init ─────────────────────────────────────────────────
+async function initSession() {
+  // Clear messages
+  const msgs   = document.getElementById('messages');
+  const typing = document.getElementById('typing-indicator');
+  Array.from(msgs.children).forEach(el => { if (el !== typing) el.remove(); });
+  if (projChart) { projChart.destroy(); projChart = null; }
+
+  document.getElementById('progress-header').style.display = '';
+  document.getElementById('chat-input').disabled = true;
+  document.getElementById('send-btn').disabled   = true;
+  setProgress(0, 'Gathering your profile');
+  clearChips();
+  setHint('');
+  isWaiting = false;
+  setServerStatus('connecting');
+
+  showTyping(true);
+  await sleep(500);
+
+  try {
+    const data = await apiPost('/start', {});
+    sessionId    = data.sessionId;
+    currentPhase = data.phase;
+    setServerStatus('connected');
+    showTyping(false);
+    addBotMessage(data.message);
+    if (data.step) applyStep(data.step);
+    else {
+      document.getElementById('chat-input').disabled = false;
+      document.getElementById('send-btn').disabled   = false;
+    }
+  } catch (err) {
+    showTyping(false);
+    setServerStatus('error');
+    showConnectionError(err.message);
+  }
+}
+
+function showConnectionError(errMsg) {
+  const msgs   = document.getElementById('messages');
+  const typing = document.getElementById('typing-indicator');
+
+  const card = document.createElement('div');
+  card.className = 'msg bot';
+  card.style.cssText = 'max-width:100%;width:100%;';
+  card.innerHTML = `
+    <div style="
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.35);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+    ">
+      <div style="font-size:2rem;margin-bottom:0.75rem">⚡</div>
+      <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:#f87171;margin-bottom:0.5rem">
+        Cannot reach the backend server
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1rem">
+        Make sure the Node.js server is running and you're on the right port.<br/>
+        <strong style="color:var(--gold-400)">Open: http://localhost:3000</strong>
+        (not port 5678 or any other port)
+      </div>
+      <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:0.6rem 0.9rem;font-family:monospace;font-size:0.78rem;color:#f87171;margin-bottom:1rem;text-align:left">
+        → Run in your terminal:<br/>
+        <strong style="color:#fbbf24">npm run dev</strong><br/><br/>
+        → Then open (not this port):<br/>
+        <strong style="color:#fbbf24">http://localhost:3000</strong>
+      </div>
+      ${errMsg ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem">Error: ${escapeHtml(errMsg)}</div>` : ''}
+      <button onclick="initSession()" class="btn-gold" style="width:100%;padding:0.75rem">
+        🔄 Retry Connection
+      </button>
+    </div>`;
+  msgs.insertBefore(card, typing);
+  scrollToBottom();
+}
+
+// ─── Event Listeners ──────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Theme
+  const savedTheme = localStorage.getItem('financeai_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  document.getElementById('theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('financeai_theme', next);
+    if (projChart) {
+      const isDark = next === 'dark';
+      const tc = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
+      projChart.options.scales.x.ticks.color = tc;
+      projChart.options.scales.y.ticks.color = tc;
+      projChart.options.plugins.legend.labels.color = tc;
+      projChart.update();
+    }
+  });
+
+  // Restart
+  document.getElementById('restart-btn').addEventListener('click', initSession);
+
+  // Send
+  const sendBtn  = document.getElementById('send-btn');
+  const chatInput = document.getElementById('chat-input');
+
+  sendBtn.addEventListener('click', () => sendMessage());
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  chatInput.addEventListener('input', () => {
+    sendBtn.disabled = chatInput.value.trim() === '' || isWaiting;
+  });
+
+  // Start
+  initSession();
+});
+</script>
+</body>
+</html>
