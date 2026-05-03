@@ -552,6 +552,170 @@ body {
   text-align: center;
 }
 
+/* ─── Snapshot Card (visuals in every response) ─── */
+.snapshot-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: 18px;
+  padding: 0.85rem 0.95rem;
+  margin: 0.25rem 0 0.45rem;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  animation: fade-up 0.45s ease;
+}
+.snapshot-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(245,197,24,0.06), transparent 55%);
+  pointer-events: none;
+}
+.snapshot-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+.snapshot-meta {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  font-weight: 600;
+}
+.snapshot-title {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+}
+.snapshot-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+.snapshot-badge {
+  background: rgba(34,197,94,0.10);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #22c55e;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+}
+.snapshot-insight {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding: 0.6rem 0.7rem;
+  background: rgba(245,197,24,0.05);
+  border: 1px solid var(--border-gold);
+  border-radius: 12px;
+  margin-bottom: 0.6rem;
+  position: relative;
+}
+.snapshot-hook {
+  color: var(--gold-400);
+  font-weight: 700;
+}
+
+.mini-chart-wrap {
+  height: 110px;
+  margin: 0.25rem 0 0.55rem;
+}
+
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  position: relative;
+}
+.bar-list.compact {
+  gap: 0.42rem;
+  margin-bottom: 0.55rem;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: 86px 1fr 88px;
+  gap: 0.65rem;
+  align-items: center;
+}
+.bar-row.compact {
+  grid-template-columns: 70px 1fr 78px;
+  gap: 0.55rem;
+}
+.bar-label {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
+  box-shadow: 0 0 18px rgba(245,197,24,0.25);
+}
+.bar-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--gold-400);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.suggestions-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.55rem;
+  position: relative;
+}
+.suggestion-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  position: relative;
+}
+.suggestion-row.compact {
+  gap: 0.45rem;
+}
+.suggestion-chip {
+  background: var(--bg-chip);
+  border: 1px solid var(--border-gold);
+  border-radius: 999px;
+  padding: 0.45rem 0.8rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--gold-400);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+.suggestion-chip:hover {
+  background: var(--bg-chip-hover);
+  border-color: var(--gold-400);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px var(--gold-glow-soft);
+}
+
 /* ─── Projection Card ─── */
 .projection-card {
   background: var(--bg-card);

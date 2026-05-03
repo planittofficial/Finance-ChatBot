@@ -281,6 +281,11 @@ async function startSession(req, res) {
       phase:     'collect',
       step:      null,
       progress:  0,
+      insight:   generateSimpleInsight(session, { message: firstQuestion, phase: 'collect' }),
+      suggestedQuestions: generateSuggestedQuestions(session),
+      visual:    makeVisualData(session, { message: firstQuestion, phase: 'collect' }),
+      summaryLine: buildProfileSummaryLine(session),
+      hookLine: buildHookLine(session, { message: firstQuestion, phase: 'collect' }),
     });
   } catch (err) {
     console.error('[startSession]', err);
@@ -327,6 +332,17 @@ async function handleMessage(req, res) {
         response = { message: "I'm ready to help with your financial questions. What would you like to know?", phase: session.phase };
     }
 
+    // Enrich response with simple insight, suggested questions, and a small visual payload
+    try {
+      response.insight = generateSimpleInsight(session, response);
+      response.suggestedQuestions = generateSuggestedQuestions(session);
+      response.visual = makeVisualData(session, response);
+      response.summaryLine = buildProfileSummaryLine(session);
+      response.hookLine = buildHookLine(session, response);
+    } catch (e) {
+      console.warn('[response-enrich]', e && e.message);
+    }
+
     sessionStore.addMessage(sessionId, 'assistant', response.message);
     return res.json({ sessionId, ...response });
 
@@ -335,6 +351,133 @@ async function handleMessage(req, res) {
     const fallback = "I'm having a brief connectivity issue. Could you please repeat that?";
     return res.json({ sessionId, message: fallback, phase: session.phase, error: true });
   }
+}
+
+// ─── Response enrichment helpers ───────────────────────────────────────────
+function generateSimpleInsight(session, responseObj) {
+  try {
+    const profile = session.profile || {};
+    const income = profile.monthly_income || profile.income || 0;
+    const expenses = profile.expenses;
+
+    // Prefer server-provided analysis if present; avoid computing projections on incomplete profiles.
+    const analysis = responseObj.analysis || session.analysis || null;
+    const investable = (analysis && Number.isFinite(analysis.investable_amount)) ? analysis.investable_amount : null;
+
+    if (income && investable !== null) {
+      return `Quick insight: with ₹${financeService.formatINR(income)}/mo you could invest about ₹${financeService.formatINR(investable)}/mo.`;
+    }
+    if (income && Number.isFinite(expenses)) {
+      const surplus = Math.max(0, Math.round(income - expenses));
+      return `Quick insight: your rough monthly surplus looks like ~₹${financeService.formatINR(surplus)} (income − expenses).`;
+    }
+    if (income) {
+      return `Quick insight: once I know your expenses, I can estimate how much of your ₹${financeService.formatINR(income)}/mo can be invested.`;
+    }
+    return 'Quick insight: share just one number (income) and I’ll show a quick baseline instantly.';
+  } catch (e) {
+    return 'Quick insight: saving and investing a bit more each month compounds significantly over years.';
+  }
+}
+
+function generateSuggestedQuestions(session) {
+  const profile = session.profile || {};
+  const goal = profile.goal || 'wealth';
+  const income = profile.monthly_income || profile.income;
+  const suggestions = [
+    'Show my quick snapshot',
+    'Show a 5-year projection',
+    'How much can I invest monthly?',
+    `Give me 3 quick wins for ${goal}`,
+    'What should I do this month?',
+    'Connect me with advisor Piyush',
+  ];
+
+  // If user hasn’t shared income yet, add a prompt that still “works” (asks for baseline)
+  if (!income) {
+    suggestions.unshift('I earn 50k/month — show my baseline');
+  }
+
+  // Keep it short to reduce UI space
+  return Array.from(new Set(suggestions)).slice(0, 5);
+}
+
+function buildProfileSummaryLine(session) {
+  const p = (session && session.profile) ? session.profile : {};
+  const parts = [];
+  if (p.age) parts.push(`${p.age}y`);
+  const income = p.monthly_income || p.income;
+  if (income) parts.push(`₹${financeService.formatINR(income)}/mo`);
+  if (p.goal) parts.push(`goal: ${p.goal}`);
+  if (p.risk) parts.push(`risk: ${p.risk}`);
+  return parts.length ? `You: ${parts.join(' • ')}` : 'You: add income to see your potential.';
+}
+
+function buildHookLine(session, responseObj) {
+  const profile = session.profile || {};
+  const income = profile.monthly_income || profile.income || 0;
+  const analysis = responseObj.analysis || session.analysis || null;
+
+  if (analysis && analysis.projections && Number.isFinite(analysis.projections.optimized_5yr) && Number.isFinite(analysis.investable_amount)) {
+    return `Hook: a 30‑min plan with Piyush can help you turn ~₹${financeService.formatINR(analysis.investable_amount)}/mo into ${financeService.formatCrLakh(analysis.projections.optimized_5yr)} in 5 years.`;
+  }
+  if (income) {
+    return 'Hook: share expenses + savings and I’ll quantify your 5‑year wealth potential (then Piyush can validate the plan).';
+  }
+  return 'Hook: share your monthly income to see a baseline instantly.';
+}
+
+function makeVisualData(session, responseObj) {
+  const profile = session.profile || {};
+  const income = profile.monthly_income || profile.income || 0;
+  const expenses = profile.expenses || 0;
+  const savings = profile.current_savings || profile.savings || 0;
+
+  // Only compute projections when we at least have income; otherwise keep it simple.
+  let analysis = responseObj.analysis || session.analysis || null;
+  if (!analysis && income) {
+    try {
+      const safeProfile = {
+        age: profile.age || 30,
+        income: income,
+        expenses: profile.expenses || Math.round(income * 0.7),
+        savings: profile.current_savings || profile.savings || 0,
+        risk: profile.risk || 'moderate',
+        goal: profile.goal || 'wealth',
+      };
+      analysis = financeService.generateProjections(safeProfile);
+    } catch (e) {
+      analysis = null;
+    }
+  }
+
+  const investable = (analysis && Number.isFinite(analysis.investable_amount))
+    ? analysis.investable_amount
+    : Math.max(0, Math.round((income || 0) - (expenses || 0)));
+
+  const projection = (analysis && analysis.projections && Number.isFinite(analysis.projections.current_5yr) && Number.isFinite(analysis.projections.optimized_5yr))
+    ? {
+        labels: ['Current (5y)', 'Optimized (5y)'],
+        values: [analysis.projections.current_5yr, analysis.projections.optimized_5yr],
+        formatted: {
+          'Current (5y)': financeService.formatCrLakh(analysis.projections.current_5yr),
+          'Optimized (5y)': financeService.formatCrLakh(analysis.projections.optimized_5yr),
+        }
+      }
+    : null;
+
+  return {
+    kind: 'simple_bar', // UI can interpret this
+    labels: ['Income', 'Expenses', 'Savings', 'Investable'],
+    values: [income, expenses, savings, investable],
+    formatted: {
+      Income: `₹${financeService.formatINR(income)}`,
+      Expenses: `₹${financeService.formatINR(expenses)}`,
+      Savings: `₹${financeService.formatINR(savings)}`,
+      Investable: `₹${financeService.formatINR(investable)}`,
+    },
+    projection,
+  };
 }
 
 // ─── Collection Phase Logic ───────────────────────────────────────────────────
@@ -540,7 +683,7 @@ async function handleCollectPhase(session, userMessage) {
     const msg = `All set — here's your personalised snapshot:\n` +
       `• Investable: ₹${financeService.formatINR(analysis.investable_amount)}/month\n` +
       `• Optimized (5yr): ${financeService.formatCrLakh(analysis.projections.optimized_5yr)}\n` +
-      `\n${peak}\n\nI can connect you with Priya Sharma who can build a plan for this. Want me to have her reach out?`;
+      `\n${peak}\n\nI can connect you with Piyush Tembhekar who can build a plan for this. Want me to have him reach out?`;
     return { message: msg, phase: 'hook', step: null, progress: 100, show_advisor_card: true };
   }
 
@@ -683,7 +826,7 @@ async function handleFreeformPhase(session, userMessage) {
 
       // Mark session captured
       sessionStore.updateSession(session.id, { phase: 'captured' });
-      const conf = `✅ Done — thanks ${saved.name || ''}! Priya will reach out within 24 hours. She already has everything we discussed.`;
+      const conf = `✅ Done — thanks ${saved.name || ''}! Piyush will reach out within 24 hours. He already has everything we discussed.`;
       return { message: conf, phase: 'captured' };
     }
   } catch (e) {
