@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinanceAI — Personalized Wealth Intelligence</title>
-  <meta name="description" content="Discover your personalized financial projections powered by AI. See exactly how much you could grow your wealth and connect with certified financial advisors." />
+  <meta name="description"
+    content="Discover your personalized financial projections powered by AI. See exactly how much you could grow your wealth and connect with certified financial advisors." />
   <link rel="stylesheet" href="style.css" />
   <script src="https://unpkg.com/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script>
@@ -15,214 +17,217 @@
     }
   </script>
 </head>
+
 <body>
 
-<div class="bg-orbs" aria-hidden="true">
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
-  <div class="orb orb-3"></div>
-</div>
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
 
-<div id="app">
+  <div id="app">
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="logo">
-      <div class="logo-icon" aria-hidden="true">₹</div>
-      <div>
-        <div class="logo-text">FinanceAI</div>
-        <div class="logo-sub">Wealth Intelligence</div>
-      </div>
-    </div>
-    <div class="header-actions">
-      <div id="server-status" class="live-badge" title="Backend server status">
-        <span class="live-dot" id="status-dot"></span>
-        <span id="status-text">Connecting…</span>
-      </div>
-      <button id="theme-toggle" class="theme-btn" title="Toggle theme">☀️</button>
-      <button id="restart-btn" class="restart-btn">↺ Restart</button>
-    </div>
-  </header>
-
-  <main class="main">
-
-    <!-- CHAT WINDOW (shown immediately — no API gate, key is in backend .env) -->
-    <section id="chat-window" class="active" aria-label="Finance AI Chat" aria-live="polite">
-
-      <div class="progress-header" id="progress-header">
-        <div class="progress-label">
-          <span id="progress-label-text">Gathering your profile</span>
-          <span id="progress-pct">0%</span>
-        </div>
-        <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    <!-- HEADER -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon" aria-hidden="true">₹</div>
+        <div>
+          <div class="logo-text">FinanceAI</div>
+          <div class="logo-sub">Wealth Intelligence</div>
         </div>
       </div>
-
-      <div class="messages" id="messages" role="log">
-        <div class="typing-indicator" id="typing-indicator">
-          <div class="bot-avatar">✦</div>
-          <div class="typing-dots"><span></span><span></span><span></span></div>
+      <div class="header-actions">
+        <div id="server-status" class="live-badge" title="Backend server status">
+          <span class="live-dot" id="status-dot"></span>
+          <span id="status-text">Connecting…</span>
         </div>
+        <button id="theme-toggle" class="theme-btn" title="Toggle theme">☀️</button>
+        <button id="restart-btn" class="restart-btn">↺ Restart</button>
       </div>
+    </header>
 
-      <div class="input-area">
-        <div class="input-row">
-          <input id="chat-input" class="chat-input" type="text" placeholder="Type your answer..." autocomplete="off" />
-          <button id="send-btn" class="send-btn" disabled>➤</button>
+    <main class="main">
+
+      <!-- CHAT WINDOW (shown immediately — no API gate, key is in backend .env) -->
+      <section id="chat-window" class="active" aria-label="Finance AI Chat" aria-live="polite">
+
+        <div class="progress-header" id="progress-header">
+          <div class="progress-label">
+            <span id="progress-label-text">Gathering your profile</span>
+            <span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
         </div>
-        <div id="chips-container" class="chips-row"></div>
-        <p class="input-hint" id="input-hint"></p>
-      </div>
 
-    </section>
-  </main>
-</div>
+        <div class="messages" id="messages" role="log">
+          <div class="typing-indicator" id="typing-indicator">
+            <div class="bot-avatar">✦</div>
+            <div class="typing-dots"><span></span><span></span><span></span></div>
+          </div>
+        </div>
 
-<script>
-// ═══════════════════════════════════════════════════════════
-//  FinanceAI — Frontend Test Harness
-//  Communicates exclusively with the backend API at /api/chat
-//  No Groq key needed here — key lives in backend .env
-// ═══════════════════════════════════════════════════════════
+        <div class="input-area">
+          <div class="input-row">
+            <input id="chat-input" class="chat-input" type="text" placeholder="Type your answer..."
+              autocomplete="off" />
+            <button id="send-btn" class="send-btn" disabled>➤</button>
+          </div>
+          <div id="chips-container" class="chips-row"></div>
+          <p class="input-hint" id="input-hint"></p>
+        </div>
 
-const API_BASE = '/api/chat';
+      </section>
+    </main>
+  </div>
 
-// ─── State ───────────────────────────────────────────────
-let sessionId    = null;
-let currentPhase = 'collect';
-let currentStep  = null;    // step metadata from backend
-let projChart    = null;
-let isWaiting    = false;   // true while awaiting bot response
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    //  FinanceAI — Frontend Test Harness
+    //  Communicates exclusively with the backend API at /api/chat
+    //  No Groq key needed here — key lives in backend .env
+    // ═══════════════════════════════════════════════════════════
 
-// ─── API Client ──────────────────────────────────────────
-async function apiPost(path, body = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(body),
-  });
+    const API_BASE = '/api/chat';
 
-  // Guard against non-JSON responses (e.g. from a Python dev server on wrong port)
-  const contentType = res.headers.get('content-type') || '';
-  if (!contentType.includes('application/json')) {
-    throw new Error(`Server at port ${location.port || '80'} returned non-JSON (${res.status}). Make sure you're on http://localhost:3000 — not port 5678 or another port.`);
-  }
+    // ─── State ───────────────────────────────────────────────
+    let sessionId = null;
+    let currentPhase = 'collect';
+    let currentStep = null;    // step metadata from backend
+    let projChart = null;
+    let isWaiting = false;   // true while awaiting bot response
+    let analysisRendered = false; // true after analysis cards are shown once
 
-  const data = await res.json();
-  if (!res.ok) throw Object.assign(new Error(data.error || 'API error'), { status: res.status, code: data.code });
-  return data;
-}
+    // ─── API Client ──────────────────────────────────────────
+    async function apiPost(path, body = {}) {
+      const res = await fetch(`${API_BASE}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-async function apiGet(path) {
-  const res = await fetch(`${API_BASE}${path}`);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'API error');
-  return data;
-}
+      // Guard against non-JSON responses (e.g. from a Python dev server on wrong port)
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Server at port ${location.port || '80'} returned non-JSON (${res.status}). Make sure you're on http://localhost:3000 — not port 5678 or another port.`);
+      }
 
-// ─── Server Status Badge ─────────────────────────────────
-function setServerStatus(state) {
-  // state: 'connecting' | 'connected' | 'error'
-  const dot  = document.getElementById('status-dot');
-  const text = document.getElementById('status-text');
-  if (!dot || !text) return;
-  const map = {
-    connecting: { color: '#f59e0b', label: 'Connecting…' },
-    connected:  { color: '#22c55e', label: 'Connected' },
-    error:      { color: '#ef4444', label: 'Server offline' },
-  };
-  const s = map[state] || map.connecting;
-  dot.style.background  = s.color;
-  dot.style.boxShadow   = `0 0 6px ${s.color}`;
-  text.textContent = s.label;
-}
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+      const data = await res.json();
+      if (!res.ok) throw Object.assign(new Error(data.error || 'API error'), { status: res.status, code: data.code });
+      return data;
+    }
 
-function formatINR(n) {
-  if (!n && n !== 0) return '0';
-  return new Intl.NumberFormat('en-IN').format(Math.round(n));
-}
+    async function apiGet(path) {
+      const res = await fetch(`${API_BASE}${path}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API error');
+      return data;
+    }
 
-function formatCrLakh(n) {
-  if (n >= 1e7) return `₹${(n/1e7).toFixed(2)} Cr`;
-  if (n >= 1e5) return `₹${(n/1e5).toFixed(1)}L`;
-  return `₹${formatINR(n)}`;
-}
+    // ─── Server Status Badge ─────────────────────────────────
+    function setServerStatus(state) {
+      // state: 'connecting' | 'connected' | 'error'
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (!dot || !text) return;
+      const map = {
+        connecting: { color: '#f59e0b', label: 'Connecting…' },
+        connected: { color: '#22c55e', label: 'Connected' },
+        error: { color: '#ef4444', label: 'Server offline' },
+      };
+      const s = map[state] || map.connecting;
+      dot.style.background = s.color;
+      dot.style.boxShadow = `0 0 6px ${s.color}`;
+      text.textContent = s.label;
+    }
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function parseMarkdown(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/_(.*?)_/g, '<em>$1</em>')
-    .replace(/\n/g, '<br/>');
-}
+    function formatINR(n) {
+      if (!n && n !== 0) return '0';
+      return new Intl.NumberFormat('en-IN').format(Math.round(n));
+    }
 
-function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+    function formatCrLakh(n) {
+      if (n >= 1e7) return `₹${(n / 1e7).toFixed(2)} Cr`;
+      if (n >= 1e5) return `₹${(n / 1e5).toFixed(1)}L`;
+      return `₹${formatINR(n)}`;
+    }
 
-function scrollToBottom() {
-  const msgs = document.getElementById('messages');
-  if (msgs) msgs.scrollTop = msgs.scrollHeight;
-}
+    function parseMarkdown(text) {
+      return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/_(.*?)_/g, '<em>$1</em>')
+        .replace(/\n/g, '<br/>');
+    }
 
-// ─── Progress Bar ────────────────────────────────────────
-function setProgress(pct, label) {
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-pct').textContent  = pct + '%';
-  document.querySelector('.progress-track').setAttribute('aria-valuenow', pct);
-  if (label) document.getElementById('progress-label-text').textContent = label;
-}
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-// ─── Typing Indicator ────────────────────────────────────
-function showTyping(show) {
-  document.getElementById('typing-indicator').classList.toggle('active', show);
-  scrollToBottom();
-}
+    function scrollToBottom() {
+      const msgs = document.getElementById('messages');
+      if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }
 
-// ─── Add Messages ─────────────────────────────────────────
-function addBotMessage(html) {
-  const msgs    = document.getElementById('messages');
-  const typing  = document.getElementById('typing-indicator');
-  const div     = document.createElement('div');
-  div.className = 'msg bot';
-  div.innerHTML = `<div class="bot-avatar">✦</div><div class="bubble">${parseMarkdown(html)}</div>`;
-  msgs.insertBefore(div, typing);
-  showTyping(false);
-  scrollToBottom();
-}
+    // ─── Progress Bar ────────────────────────────────────────
+    function setProgress(pct, label) {
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent = pct + '%';
+      document.querySelector('.progress-track').setAttribute('aria-valuenow', pct);
+      if (label) document.getElementById('progress-label-text').textContent = label;
+    }
 
-function addUserMessage(text) {
-  const msgs    = document.getElementById('messages');
-  const typing  = document.getElementById('typing-indicator');
-  const div     = document.createElement('div');
-  div.className = 'msg user';
-  div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
-  msgs.insertBefore(div, typing);
-  scrollToBottom();
-}
+    // ─── Typing Indicator ────────────────────────────────────
+    function showTyping(show) {
+      document.getElementById('typing-indicator').classList.toggle('active', show);
+      scrollToBottom();
+    }
 
-function addElement(el) {
-  const msgs   = document.getElementById('messages');
-  const typing = document.getElementById('typing-indicator');
-  msgs.insertBefore(el, typing);
-  scrollToBottom();
-}
+    // ─── Add Messages ─────────────────────────────────────────
+    function addBotMessage(html) {
+      const msgs = document.getElementById('messages');
+      const typing = document.getElementById('typing-indicator');
+      const div = document.createElement('div');
+      div.className = 'msg bot';
+      div.innerHTML = `<div class="bot-avatar">✦</div><div class="bubble">${parseMarkdown(html)}</div>`;
+      msgs.insertBefore(div, typing);
+      showTyping(false);
+      scrollToBottom();
+    }
 
-function buildLineGrowthCard(visual) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
+    function addUserMessage(text) {
+      const msgs = document.getElementById('messages');
+      const typing = document.getElementById('typing-indicator');
+      const div = document.createElement('div');
+      div.className = 'msg user';
+      div.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+      msgs.insertBefore(div, typing);
+      scrollToBottom();
+    }
 
-  const card = document.createElement('div');
-  card.className = 'growth-analysis-card';
-  const chartId = `lineGrowth_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-  const expected = visual.highlights?.expected_growth_10yr || 0;
-  const uplift = visual.highlights?.improvement_over_current_10yr || 0;
+    function addElement(el) {
+      const msgs = document.getElementById('messages');
+      const typing = document.getElementById('typing-indicator');
+      msgs.insertBefore(el, typing);
+      scrollToBottom();
+    }
 
-  card.innerHTML = `
+    function buildLineGrowthCard(visual) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+
+      const card = document.createElement('div');
+      card.className = 'growth-analysis-card';
+      const chartId = `lineGrowth_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const expected = visual.highlights?.expected_growth_10yr || 0;
+      const uplift = visual.highlights?.improvement_over_current_10yr || 0;
+
+      card.innerHTML = `
     <div style="font-family:'Outfit',sans-serif;font-weight:700;margin-bottom:0.8rem;font-size:0.95rem">
       📈 Expected Growth Summary
     </div>
@@ -241,308 +246,431 @@ function buildLineGrowthCard(visual) {
     </div>
   `;
 
-  wrap.appendChild(card);
+      wrap.appendChild(card);
 
-  requestAnimationFrame(() => {
-    const canvas = document.getElementById(chartId);
-    if (!canvas || typeof Chart === 'undefined') return;
-    const labels = visual.labels || [];
-    const series = Array.isArray(visual.series) ? visual.series : [];
-    if (series.length < 2) return;
+      requestAnimationFrame(() => {
+        const canvas = document.getElementById(chartId);
+        if (!canvas || typeof Chart === 'undefined') return;
+        const labels = visual.labels || [];
+        const series = Array.isArray(visual.series) ? visual.series : [];
+        if (series.length < 2) return;
 
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    const textColor = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
-    const gridColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        const textColor = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
+        const gridColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
 
-    new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: series[0].name || 'Current Path',
-            data: series[0].values || [],
-            borderColor: '#4b5280',
-            backgroundColor: 'rgba(75,82,128,0.06)',
-            fill: true,
-            tension: 0.35,
-            borderWidth: 2,
-            pointRadius: 3
+        new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: series[0].name || 'Current Path',
+                data: series[0].values || [],
+                borderColor: '#4b5280',
+                backgroundColor: 'rgba(75,82,128,0.06)',
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2,
+                pointRadius: 3
+              },
+              {
+                label: series[1].name || 'Optimized Path',
+                data: series[1].values || [],
+                borderColor: '#22c55e',
+                backgroundColor: 'rgba(34,197,94,0.10)',
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2.5,
+                pointRadius: 3
+              }
+            ]
           },
-          {
-            label: series[1].name || 'Optimized Path',
-            data: series[1].values || [],
-            borderColor: '#22c55e',
-            backgroundColor: 'rgba(34,197,94,0.10)',
-            fill: true,
-            tension: 0.35,
-            borderWidth: 2.5,
-            pointRadius: 3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: { position: 'top', labels: { color: textColor, usePointStyle: true, font: { size: 11 } } },
-          tooltip: {
-            backgroundColor: 'rgba(5,7,15,0.9)',
-            borderColor: 'rgba(245,197,24,0.25)',
-            borderWidth: 1,
-            titleColor: '#f5c518',
-            bodyColor: 'rgba(240,242,250,0.8)',
-            callbacks: { label: ctx => ` ${formatCrLakh(ctx.raw)}` }
-          }
-        },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } } },
-          y: {
-            grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              callback: v => v >= 1e7 ? `₹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v / 1e5).toFixed(0)}L` : `₹${formatINR(v)}`
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: { position: 'top', labels: { color: textColor, usePointStyle: true, font: { size: 11 } } },
+              tooltip: {
+                backgroundColor: 'rgba(5,7,15,0.9)',
+                borderColor: 'rgba(245,197,24,0.25)',
+                borderWidth: 1,
+                titleColor: '#f5c518',
+                bodyColor: 'rgba(240,242,250,0.8)',
+                callbacks: { label: ctx => ` ${formatCrLakh(ctx.raw)}` }
+              }
+            },
+            scales: {
+              x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 10 } } },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: textColor,
+                  font: { size: 10 },
+                  callback: v => v >= 1e7 ? `₹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v / 1e5).toFixed(0)}L` : `₹${formatINR(v)}`
+                }
+              }
             }
           }
-        }
-      }
-    });
-  });
+        });
+      });
 
-  return wrap;
-}
+      return wrap;
+    }
 
-// ─── Enrichment UI (insight + visual + suggested questions) ─────────────────
-function buildSnapshotCard(data) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
+    // ─── Enrichment UI (insight + visual + suggested questions) ─────────────────
+    function buildSnapshotCard(data) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
 
-  const card = document.createElement('div');
-  card.className = 'snapshot-card';
+      const card = document.createElement('div');
+      card.className = 'snapshot-card';
 
-  // One-line summary so it doesn't hide the bot message
-  const header = document.createElement('div');
-  header.className = 'snapshot-header';
-  header.innerHTML = `
+      // One-line summary so it doesn't hide the bot message
+      const header = document.createElement('div');
+      header.className = 'snapshot-header';
+      header.innerHTML = `
     <div class="snapshot-meta">${escapeHtml(data.summaryLine || '')}</div>
     <div class="snapshot-badge">LIVE</div>
   `;
-  card.appendChild(header);
+      card.appendChild(header);
 
-  // Insight + advisor hook (simple language)
-  if (data.insight || data.hookLine) {
-    const insight = document.createElement('div');
-    insight.className = 'snapshot-insight';
-    insight.innerHTML = `${escapeHtml(data.insight || '')}${data.hookLine ? `<br/><span class="snapshot-hook">${escapeHtml(data.hookLine)}</span>` : ''}`;
-    card.appendChild(insight);
-  }
+      // Insight + advisor hook (simple language)
+      if (data.insight || data.hookLine) {
+        const insight = document.createElement('div');
+        insight.className = 'snapshot-insight';
+        insight.innerHTML = `${escapeHtml(data.insight || '')}${data.hookLine ? `<br/><span class="snapshot-hook">${escapeHtml(data.hookLine)}</span>` : ''}`;
+        card.appendChild(insight);
+      }
 
-  // Suggested questions (MAX 2, not 5)
-  if (Array.isArray(data.suggestedQuestions) && data.suggestedQuestions.length) {
-    const row = document.createElement('div');
-    row.className = 'suggestion-row compact';
-    data.suggestedQuestions.slice(0, 2).forEach(q => {
-      const chip = document.createElement('button');
-      chip.className = 'suggestion-chip';
-      chip.type = 'button';
-      chip.textContent = q;
-      chip.onclick = () => sendMessage(q, q);
-      row.appendChild(chip);
-    });
-    card.appendChild(row);
-  }
+      // Suggested questions (MAX 2, not 5)
+      if (Array.isArray(data.suggestedQuestions) && data.suggestedQuestions.length) {
+        const row = document.createElement('div');
+        row.className = 'suggestion-row compact';
+        data.suggestedQuestions.slice(0, 2).forEach(q => {
+          const chip = document.createElement('button');
+          chip.className = 'suggestion-chip';
+          chip.type = 'button';
+          chip.textContent = q;
+          chip.onclick = () => sendMessage(q, q);
+          row.appendChild(chip);
+        });
+        card.appendChild(row);
+      }
 
-  wrap.appendChild(card);
-  return wrap;
-}
-
-async function maybeShowAdvisorCard(data) {
-  if (!data || !data.show_advisor_card) return;
-  try {
-    // Try using payload first, else fetch from server
-    let profile = data.profile || null;
-    let analysis = data.analysis || null;
-    if (!profile) {
-      const state = await apiGet(`/session/${sessionId}`);
-      profile = state.profile || null;
-      analysis = state.analysis || analysis;
+      wrap.appendChild(card);
+      return wrap;
     }
-    if (profile) showAdvisorCard(analysis || {}, profile);
-  } catch (e) {
-    // Non-fatal: advisor card is optional UI
-    console.warn('[advisor-card]', e && e.message);
-  }
-}
 
-// ─── Chips ────────────────────────────────────────────────
-function showChips(choices, displayMap) {
-  const container = document.getElementById('chips-container');
-  const input     = document.getElementById('chat-input');
-  const btn       = document.getElementById('send-btn');
-  container.innerHTML = '';
-  choices.forEach(val => {
-    const label = displayMap ? (displayMap[val] || val) : val;
-    const chip  = document.createElement('button');
-    chip.className   = 'chip';
-    chip.textContent = label;
-    chip.onclick     = () => sendMessage(val, label);
-    container.appendChild(chip);
-  });
-  input.style.display = 'none';
-  btn.style.display   = 'none';
-}
-
-function clearChips() {
-  document.getElementById('chips-container').innerHTML = '';
-  document.getElementById('chat-input').style.display  = '';
-  document.getElementById('chat-input').disabled       = false;
-  document.getElementById('send-btn').style.display    = '';
-}
-
-function setHint(text) {
-  document.getElementById('input-hint').textContent = text || '';
-}
-
-// ─── Apply step metadata from API ────────────────────────
-function applyStep(step) {
-  if (!step) return;
-  currentStep = step;
-  const input = document.getElementById('chat-input');
-  clearChips();
-
-  if (step.type === 'choice' && step.choices) {
-    showChips(step.choices, step.display);
-    setHint(step.hint || '');
-    document.getElementById('send-btn').disabled = true;
-  } else {
-    input.type        = 'text';
-    input.placeholder = step.hint || 'Type your answer...';
-    input.inputMode   = step.type === 'number' ? 'decimal' : 'text';
-    input.value       = '';
-    input.disabled    = false;
-    input.focus();
-    document.getElementById('send-btn').disabled = false;
-    setHint(step.hint || '');
-  }
-}
-
-// ─── Send Message to Backend ─────────────────────────────
-async function sendMessage(raw, displayLabel) {
-  if (isWaiting) return;
-  const text = (raw || document.getElementById('chat-input').value).trim();
-  if (!text) return;
-
-  isWaiting = true;
-  document.getElementById('chat-input').value = '';
-  document.getElementById('send-btn').disabled = true;
-
-  addUserMessage(displayLabel || text);
-  clearChips();
-  showTyping(true);
-  await sleep(300);
-
-  try {
-    const data = await apiPost('/message', { sessionId, message: text });
-    handleResponse(data);
-  } catch (err) {
-    showTyping(false);
-    if (err.code === 'SESSION_EXPIRED') {
-      addBotMessage("⚠️ Your session expired. Starting a fresh one...");
-      await sleep(1000);
-      await initSession();
-    } else {
-      addBotMessage(`⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
+    async function maybeShowAdvisorCard(data) {
+      if (!data || !data.show_advisor_card) return;
+      try {
+        // Try using payload first, else fetch from server
+        let profile = data.profile || null;
+        let analysis = data.analysis || null;
+        if (!profile) {
+          const state = await apiGet(`/session/${sessionId}`);
+          profile = state.profile || null;
+          analysis = state.analysis || analysis;
+        }
+        if (profile) showAdvisorCard(analysis || {}, profile);
+      } catch (e) {
+        // Non-fatal: advisor card is optional UI
+        console.warn('[advisor-card]', e && e.message);
+      }
     }
-    isWaiting = false;
-    document.getElementById('send-btn').disabled = false;
-  }
-}
 
-// ─── Handle API Response ─────────────────────────────────
-function handleResponse(data) {
-  showTyping(false);
-  currentPhase = data.phase;
-  isWaiting    = false;
+    // ─── Chips ────────────────────────────────────────────────
+    function showChips(choices, displayMap) {
+      const container = document.getElementById('chips-container');
+      const input = document.getElementById('chat-input');
+      const btn = document.getElementById('send-btn');
+      container.innerHTML = '';
+      choices.forEach(val => {
+        const label = displayMap ? (displayMap[val] || val) : val;
+        const chip = document.createElement('button');
+        chip.className = 'chip';
+        chip.textContent = label;
+        chip.onclick = () => sendMessage(val, label);
+        container.appendChild(chip);
+      });
+      input.style.display = 'none';
+      btn.style.display = 'none';
+    }
 
-  // Progress update
-  if (typeof data.progress === 'number') {
-    const label = data.progress === 100 ? 'Analysis complete!' :
-                  data.progress > 60    ? 'Almost there…' : 'Gathering your profile';
-    setProgress(data.progress, label);
-  }
+    function clearChips() {
+      document.getElementById('chips-container').innerHTML = '';
+      document.getElementById('chat-input').style.display = '';
+      document.getElementById('chat-input').disabled = false;
+      document.getElementById('send-btn').style.display = '';
+    }
 
-  // Main message
-  if (data.message) addBotMessage(data.message);
+    function setHint(text) {
+      document.getElementById('input-hint').textContent = text || '';
+    }
 
-  // Add visuals + insight + suggested questions
-  if (data.insight || (Array.isArray(data.suggestedQuestions) && data.suggestedQuestions.length)) {
-    addElement(buildSnapshotCard(data));
-  }
+    // ─── Apply step metadata from API ────────────────────────
+    function applyStep(step) {
+      if (!step) return;
+      currentStep = step;
+      const input = document.getElementById('chat-input');
+      clearChips();
 
-  // Show growth line graph only when backend provides it.
-  if (data.visual && data.visual.kind === 'line_growth') {
-    addElement(buildLineGrowthCard(data.visual));
-  }
+      // Reset input constraints from previous steps
+      input.removeAttribute('maxlength');
+      input.oninput = null;
 
-  // Auto-show advisor card if backend requests it
-  maybeShowAdvisorCard(data);
+      if (step.type === 'choice' && step.choices) {
+        showChips(step.choices, step.display);
+        setHint(step.hint || '');
+        document.getElementById('send-btn').disabled = true;
+      } else {
+        input.type = 'text';
+        input.placeholder = step.hint || 'Type your answer...';
+        input.inputMode = step.type === 'number' ? 'decimal' : 'text';
+        input.value = '';
+        input.disabled = false;
 
-  // Apply next step (if still collecting)
-  if (data.phase === 'collect' && data.step) {
-    applyStep(data.step);
-    return;
-  }
+        // Phone field: max 10 digits, numeric keyboard, strip non-digits
+        if (step.field === 'phone') {
+          input.maxLength = 10;
+          input.inputMode = 'numeric';
+          input.placeholder = 'Enter 10-digit mobile number';
+          input.oninput = () => { input.value = input.value.replace(/\D/g, '').slice(0, 10); };
+        }
 
-  // Analysis arrived — render full results UI
-  if (data.analysis) {
-    document.getElementById('progress-header').style.display = 'none';
-    clearChips();
-    setTimeout(() => renderAnalysis(data.analysis, data.profile), 400);
-    return;
-  }
+        input.focus();
+        document.getElementById('send-btn').disabled = false;
+        setHint(step.hint || '');
+      }
+    }
 
-  // Freeform / advisor phase — just enable input
-  if (['freeform', 'hook', 'advisor'].includes(data.phase)) {
-    const input = document.getElementById('chat-input');
-    input.placeholder = 'Ask me anything about your finances...';
-    input.disabled    = false;
-    document.getElementById('send-btn').disabled = false;
-  }
-}
+    // ─── Send Message to Backend ─────────────────────────────
+    async function sendMessage(raw, displayLabel) {
+      if (isWaiting) return;
+      const text = (raw || document.getElementById('chat-input').value).trim();
+      if (!text) return;
 
-// ─── Render Analysis Results ──────────────────────────────
-function renderAnalysis(a, profile) {
-  const p = a.projections;
+      isWaiting = true;
+      document.getElementById('chat-input').value = '';
+      document.getElementById('send-btn').disabled = true;
 
-  // 1. Chart card
-  addElement(buildChartCard(p, a.investable_amount, profile));
+      addUserMessage(displayLabel || text);
+      clearChips();
+      showTyping(true);
+      await sleep(300);
 
-  // 2. Clean summary card (replaces noisy multi-card blocks)
-  setTimeout(() => {
-    addBotMessage(
-      `Quick view:\n` +
-      `• Monthly SIP target: ₹${formatINR(a.investable_amount || 0)}\n` +
-      `• 10Y optimized value: ${formatCrLakh(p.optimized_10yr || 0)}\n` +
-      `• Wealth improvement vs current path: ${formatCrLakh(a.wealth_gap || 0)}\n\n` +
-      `For exact fund selection and allocation, connect with Piyush (CFP).`
-    );
-    setTimeout(() => addElement(buildHookCTA(a, profile)), 300);
-  }, 600);
-}
+      try {
+        const data = await apiPost('/message', { sessionId, message: text });
+        handleResponse(data);
+      } catch (err) {
+        showTyping(false);
+        if (err.code === 'SESSION_EXPIRED') {
+          addBotMessage("⚠️ Your session expired. Starting a fresh one...");
+          await sleep(1000);
+          await initSession();
+        } else {
+          addBotMessage(`⚠️ ${err.message || 'Something went wrong. Please try again.'}`);
+        }
+        isWaiting = false;
+        document.getElementById('send-btn').disabled = false;
+      }
+    }
 
-// ─── Chart Card ──────────────────────────────────────────
-function buildChartCard(p, investable, profile) {
-  const wrapper    = document.createElement('div');
-  wrapper.className = 'msg bot';
-  wrapper.style.cssText = 'max-width:100%;width:100%';
+    // ─── Handle API Response ─────────────────────────────────
+    function handleResponse(data) {
+      showTyping(false);
+      currentPhase = data.phase;
+      isWaiting = false;
 
-  const isDark     = document.documentElement.getAttribute('data-theme') !== 'light';
-  const textColor  = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
-  const gridColor  = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+      // Progress update
+      if (typeof data.progress === 'number') {
+        const label = data.progress === 100 ? 'Analysis complete!' :
+          data.progress > 60 ? 'Almost there…' : 'Gathering your profile';
+        setProgress(data.progress, label);
+      }
 
-  wrapper.innerHTML = `
+      // Main message
+      if (data.message) addBotMessage(data.message);
+
+      // Add visuals + insight + suggested questions
+      if (data.insight || (Array.isArray(data.suggestedQuestions) && data.suggestedQuestions.length)) {
+        addElement(buildSnapshotCard(data));
+      }
+
+      // Show growth line graph only when backend provides it.
+      if (data.visual && data.visual.kind === 'line_growth') {
+        addElement(buildLineGrowthCard(data.visual));
+      }
+
+      // Auto-show advisor card if backend requests it
+      maybeShowAdvisorCard(data);
+
+      // Apply next step (if still collecting)
+      if (data.phase === 'collect' && data.step) {
+        applyStep(data.step);
+        return;
+      }
+
+      // Analysis arrived — render full results UI (only once)
+      if (data.analysis && !analysisRendered) {
+        analysisRendered = true;
+        document.getElementById('progress-header').style.display = 'none';
+        clearChips();
+        setTimeout(() => renderAnalysis(data.analysis, data.profile), 400);
+        return;
+      }
+
+      // Freeform / advisor phase — just enable input
+      if (['freeform', 'hook', 'advisor'].includes(data.phase)) {
+        const input = document.getElementById('chat-input');
+        input.placeholder = 'Ask me anything about your finances...';
+        input.disabled = false;
+        document.getElementById('send-btn').disabled = false;
+      }
+    }
+
+    // ─── Render Analysis Results ──────────────────────────────
+    function renderAnalysis(a, profile) {
+      const plan = a.plan || a;
+      const p = plan.projections || a.projections || {};
+      const totals = plan.totals || {};
+      const fundMix = plan.fund_mix || {};
+      const fundAmounts = plan.fund_mix_amounts || {};
+      const goalProj = plan.goal_projection || {};
+      const catOpt = plan.category_optimization || [];
+      const expBreak = plan.expense_breakdown || {};
+
+      // 1. Expense breakdown doughnut
+      addElement(buildExpenseCard(expBreak, totals));
+
+      // 2. MF allocation card
+      setTimeout(() => addElement(buildMFCard(fundMix, fundAmounts, totals)), 400);
+
+      // 3. Goal motivator
+      setTimeout(() => addElement(buildGoalCard(goalProj)), 700);
+
+      // 4. Projection summary
+      setTimeout(() => {
+        const projLines = (plan.projections || []).map(pr =>
+          `• **${pr.years}Y**: ₹${formatINR(pr.monthly_investment)}/mo → ${pr.expected_value_formatted || formatCrLakh(pr.expected_value)}`
+        ).join('\n');
+        addBotMessage(
+          `📈 **Investment Projections**\n${projLines}\n\nFor fund selection, connect with your advisor.`
+        );
+        setTimeout(() => addElement(buildHookCTA(a, profile)), 300);
+      }, 1000);
+    }
+
+    // ─── Expense Breakdown Doughnut ──────────────────────────
+    function buildExpenseCard(expBreak, totals) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      const chartId = `expDoughnut_${Date.now()}`;
+      const cats = [
+        { key: 'basic_needs', label: 'Basic Needs', color: '#f5c518' },
+        { key: 'bills_payments', label: 'Bills & Payments', color: '#60a5fa' },
+        { key: 'personal_spending', label: 'Personal Spending', color: '#f87171' },
+        { key: 'extra_unexpected', label: 'Extra / Unexpected', color: '#a78bfa' },
+        { key: 'savings_surplus', label: 'Savings & Investment', color: '#22c55e' },
+      ];
+
+      const legendHTML = cats.map(c => {
+        const d = expBreak[c.key] || {};
+        return `<div class="expense-legend-item"><span class="legend-dot" style="background:${c.color}"></span>${c.label} (${d.pct || 0}%)<span class="legend-value">₹${formatINR(d.amount || 0)}</span></div>`;
+      }).join('');
+
+      wrap.innerHTML = `<div class="expense-card">
+    <div class="expense-card-title">📊 Monthly Expense Breakdown</div>
+    <div class="expense-chart-row">
+      <div class="expense-doughnut-wrap"><canvas id="${chartId}"></canvas></div>
+      <div class="expense-legend">${legendHTML}</div>
+    </div>
+  </div>`;
+
+      requestAnimationFrame(() => {
+        const canvas = document.getElementById(chartId);
+        if (!canvas || typeof Chart === 'undefined') return;
+        new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: cats.map(c => c.label),
+            datasets: [{ data: cats.map(c => (expBreak[c.key] || {}).amount || 0), backgroundColor: cats.map(c => c.color), borderWidth: 0 }]
+          },
+          options: { responsive: true, maintainAspectRatio: true, cutout: '62%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ₹${formatINR(ctx.raw)}` } } } }
+        });
+      });
+      return wrap;
+    }
+
+    // ─── MF Allocation Card ─────────────────────────────────
+    function buildMFCard(fundMix, fundAmounts, totals) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      const fc = Math.round((fundMix.flexi_cap || 0) * 100);
+      const mc = Math.round((fundMix.mid_cap || 0) * 100);
+      const sc = Math.round((fundMix.small_cap || 0) * 100);
+      wrap.innerHTML = `<div class="mf-card">
+    <div class="mf-title">💼 Recommended Mutual Fund Split (SIP: ₹${formatINR(totals.investable_amount || 0)}/mo)</div>
+    <div class="mf-bar-wrap">
+      <div class="mf-bar-seg" style="width:${fc}%;background:#f5c518">${fc}%</div>
+      <div class="mf-bar-seg" style="width:${mc}%;background:#60a5fa">${mc}%</div>
+      <div class="mf-bar-seg" style="width:${sc}%;background:#22c55e">${sc}%</div>
+    </div>
+    <div class="mf-details">
+      <div class="mf-fund-box" style="border-color:rgba(245,197,24,0.3)">
+        <div class="mf-fund-name" style="color:#f5c518">Flexi Cap</div>
+        <div class="mf-fund-amount" style="color:#f5c518">₹${formatINR(fundAmounts.flexi_cap || 0)}</div>
+        <div class="mf-fund-return">~12% p.a.</div>
+      </div>
+      <div class="mf-fund-box" style="border-color:rgba(96,165,250,0.3)">
+        <div class="mf-fund-name" style="color:#60a5fa">Mid Cap</div>
+        <div class="mf-fund-amount" style="color:#60a5fa">₹${formatINR(fundAmounts.mid_cap || 0)}</div>
+        <div class="mf-fund-return">~14% p.a.</div>
+      </div>
+      <div class="mf-fund-box" style="border-color:rgba(34,197,94,0.3)">
+        <div class="mf-fund-name" style="color:#22c55e">Small Cap</div>
+        <div class="mf-fund-amount" style="color:#22c55e">₹${formatINR(fundAmounts.small_cap || 0)}</div>
+        <div class="mf-fund-return">~16% p.a.</div>
+      </div>
+    </div>
+  </div>`;
+      return wrap;
+    }
+
+    // ─── Goal Motivator Card ─────────────────────────────────
+    function buildGoalCard(goalProj) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      const emoji = (goalProj.goal_label || '🎯').match(/^[\p{Emoji}]/u)?.[0] || '🎯';
+      const yrs = goalProj.years_needed;
+      const progressPct = yrs ? Math.min(100, Math.round((1 / yrs) * 100)) : 5;
+      wrap.innerHTML = `<div class="goal-card">
+    <span class="goal-emoji">${emoji}</span>
+    <div class="goal-headline">${escapeHtml(goalProj.goal_label || 'Your Financial Goal')}</div>
+    <div class="goal-timeline">${yrs ? `Target: ${yrs} years at ₹${formatINR(goalProj.monthly_sip || 0)}/month` : 'Let\'s plan this with your advisor'}</div>
+    <div class="goal-detail">Corpus needed: ${goalProj.target_corpus_formatted || '—'} · Return: ${goalProj.assumed_return || '—'}</div>
+    <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${progressPct}%"></div></div>
+    <div class="goal-detail" style="font-weight:600;color:var(--gold-400)">${escapeHtml(goalProj.motivation || '')}</div>
+  </div>`;
+      return wrap;
+    }
+
+    // ─── Chart Card ──────────────────────────────────────────
+    function buildChartCard(p, investable, profile) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg bot';
+      wrapper.style.cssText = 'max-width:100%;width:100%';
+
+      const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      const textColor = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
+      const gridColor = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+
+      wrapper.innerHTML = `
     <div class="projection-card" style="width:100%">
       <div class="proj-header">
         <div class="proj-title">📈 Your Wealth Projection</div>
@@ -565,104 +693,104 @@ function buildChartCard(p, investable, profile) {
       </div>
     </div>`;
 
-  requestAnimationFrame(() => {
-    const canvas = document.getElementById('projChart');
-    if (!canvas || typeof Chart === 'undefined') return;
-    if (projChart) { projChart.destroy(); projChart = null; }
+      requestAnimationFrame(() => {
+        const canvas = document.getElementById('projChart');
+        if (!canvas || typeof Chart === 'undefined') return;
+        if (projChart) { projChart.destroy(); projChart = null; }
 
-    function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
-    const s = profile?.savings || 0;
+        function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+        const s = profile?.savings || 0;
 
-    projChart = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: ['Now', '1Y', '2Y', '3Y', '4Y', '5Y'],
-        datasets: [
-          {
-            label: 'Current Path',
-            data:  [s, lerp(s,p.current_3yr,0.33), lerp(s,p.current_3yr,0.66), p.current_3yr, lerp(p.current_3yr,p.current_5yr,0.5), p.current_5yr],
-            borderColor: '#4b5280', tension: 0.4, fill: false, pointRadius: 3, borderWidth: 2
+        projChart = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: ['Now', '1Y', '2Y', '3Y', '4Y', '5Y'],
+            datasets: [
+              {
+                label: 'Current Path',
+                data: [s, lerp(s, p.current_3yr, 0.33), lerp(s, p.current_3yr, 0.66), p.current_3yr, lerp(p.current_3yr, p.current_5yr, 0.5), p.current_5yr],
+                borderColor: '#4b5280', tension: 0.4, fill: false, pointRadius: 3, borderWidth: 2
+              },
+              {
+                label: 'Optimized Path',
+                data: [s, lerp(s, p.optimized_3yr, 0.33), lerp(s, p.optimized_3yr, 0.66), p.optimized_3yr, lerp(p.optimized_3yr, p.optimized_5yr, 0.5), p.optimized_5yr],
+                borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', tension: 0.4, fill: true, pointRadius: 3, borderWidth: 2.5
+              },
+              {
+                label: 'With Advisor',
+                data: [s, null, null, null, null, p.max_10yr / 2],
+                borderColor: '#f5c518', backgroundColor: 'rgba(245,197,24,0.08)', tension: 0.4, fill: false, pointRadius: 3, borderWidth: 2, borderDash: [5, 5]
+              }
+            ]
           },
-          {
-            label: 'Optimized Path',
-            data:  [s, lerp(s,p.optimized_3yr,0.33), lerp(s,p.optimized_3yr,0.66), p.optimized_3yr, lerp(p.optimized_3yr,p.optimized_5yr,0.5), p.optimized_5yr],
-            borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.08)', tension: 0.4, fill: true, pointRadius: 3, borderWidth: 2.5
-          },
-          {
-            label: 'With Advisor',
-            data:  [s, null, null, null, null, p.max_10yr / 2],
-            borderColor: '#f5c518', backgroundColor: 'rgba(245,197,24,0.08)', tension: 0.4, fill: false, pointRadius: 3, borderWidth: 2, borderDash: [5,5]
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            animation: { duration: 1200, easing: 'easeInOutQuart' },
+            plugins: {
+              legend: { position: 'top', labels: { color: textColor, usePointStyle: true, boxHeight: 6, font: { size: 11 } } },
+              tooltip: {
+                backgroundColor: 'rgba(5,7,15,0.9)',
+                borderColor: 'rgba(245,197,24,0.3)', borderWidth: 1,
+                titleColor: '#f5c518', bodyColor: 'rgba(240,242,250,0.8)',
+                callbacks: { label: ctx => ` ₹${formatINR(ctx.raw)}` }
+              }
+            },
+            scales: {
+              x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
+              y: {
+                grid: { color: gridColor },
+                ticks: { color: textColor, font: { size: 10 }, callback: v => v >= 1e7 ? `₹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v / 1e5).toFixed(0)}L` : `₹${formatINR(v)}` }
+              }
+            },
+            interaction: { intersect: false, mode: 'index' }
           }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        animation: { duration: 1200, easing: 'easeInOutQuart' },
-        plugins: {
-          legend: { position: 'top', labels: { color: textColor, usePointStyle: true, boxHeight: 6, font: { size: 11 } } },
-          tooltip: {
-            backgroundColor: 'rgba(5,7,15,0.9)',
-            borderColor: 'rgba(245,197,24,0.3)', borderWidth: 1,
-            titleColor: '#f5c518', bodyColor: 'rgba(240,242,250,0.8)',
-            callbacks: { label: ctx => ` ₹${formatINR(ctx.raw)}` }
-          }
-        },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
-          y: {
-            grid: { color: gridColor },
-            ticks: { color: textColor, font: { size: 10 }, callback: v => v >= 1e7 ? `₹${(v/1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v/1e5).toFixed(0)}L` : `₹${formatINR(v)}` }
-          }
-        },
-        interaction: { intersect: false, mode: 'index' }
-      }
-    });
-    // Count-up animation
-    wrapper.querySelectorAll('.count-up').forEach(el => {
-      const target = parseInt(el.dataset.target) || 0;
-      const dur = 1400; const start = performance.now();
-      const tick = now => {
-        const p = Math.min((now - start) / dur, 1);
-        el.textContent = '₹' + formatINR(Math.round(target * (1 - Math.pow(1 - p, 3))));
-        if (p < 1) requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    });
-  });
+        });
+        // Count-up animation
+        wrapper.querySelectorAll('.count-up').forEach(el => {
+          const target = parseInt(el.dataset.target) || 0;
+          const dur = 1400; const start = performance.now();
+          const tick = now => {
+            const p = Math.min((now - start) / dur, 1);
+            el.textContent = '₹' + formatINR(Math.round(target * (1 - Math.pow(1 - p, 3))));
+            if (p < 1) requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+      });
 
-  return wrapper;
-}
+      return wrapper;
+    }
 
-// ─── Insights ─────────────────────────────────────────────
-function buildInsights(insights) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
-  const grid = document.createElement('div');
-  grid.className = 'insights-grid';
-  insights.forEach((ins, i) => {
-    const card = document.createElement('div');
-    card.className = 'insight-card';
-    card.style.animationDelay = `${i * 0.15}s`;
-    card.innerHTML = `
+    // ─── Insights ─────────────────────────────────────────────
+    function buildInsights(insights) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      const grid = document.createElement('div');
+      grid.className = 'insights-grid';
+      insights.forEach((ins, i) => {
+        const card = document.createElement('div');
+        card.className = 'insight-card';
+        card.style.animationDelay = `${i * 0.15}s`;
+        card.innerHTML = `
       <div class="insight-title">${escapeHtml(ins.title)}</div>
       <div class="insight-desc">${escapeHtml(ins.description)}</div>
       <div class="insight-impact">${escapeHtml(ins.impact)}</div>`;
-    grid.appendChild(card);
-  });
-  wrap.appendChild(grid);
-  return wrap;
-}
+        grid.appendChild(card);
+      });
+      wrap.appendChild(grid);
+      return wrap;
+    }
 
-// ─── Gap Banner ───────────────────────────────────────────
-function buildGapBanner(a) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
-  const shortfallText = a.retirement_shortfall > 0
-    ? `Retirement shortfall: <strong>${formatCrLakh(a.retirement_shortfall)}</strong>.`
-    : `You're on track — but optimization adds <strong>${formatCrLakh(a.wealth_gap)}</strong> more.`;
-  wrap.innerHTML = `
+    // ─── Gap Banner ───────────────────────────────────────────
+    function buildGapBanner(a) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      const shortfallText = a.retirement_shortfall > 0
+        ? `Retirement shortfall: <strong>${formatCrLakh(a.retirement_shortfall)}</strong>.`
+        : `You're on track — but optimization adds <strong>${formatCrLakh(a.wealth_gap)}</strong> more.`;
+      wrap.innerHTML = `
     <div class="gap-banner">
       <div class="gap-icon">⚠️</div>
       <div class="gap-text">
@@ -670,39 +798,39 @@ function buildGapBanner(a) {
         Key risk: ${escapeHtml(a.key_risk || 'Inflation erosion on idle savings')}.
       </div>
     </div>`;
-  return wrap;
-}
+      return wrap;
+    }
 
-// ─── Growth Analysis (10-Year Timeline) ────────────────────
-function buildGrowthAnalysis(projections, analysis) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
+    // ─── Growth Analysis (10-Year Timeline) ────────────────────
+    function buildGrowthAnalysis(projections, analysis) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
 
-  const card = document.createElement('div');
-  card.className = 'growth-analysis-card';
+      const card = document.createElement('div');
+      card.className = 'growth-analysis-card';
 
-  // Title
-  const title = document.createElement('div');
-  title.style.cssText = 'font-family:"Outfit",sans-serif;font-weight:700;margin-bottom:1rem;font-size:0.95rem';
-  title.innerHTML = '📊 <strong>10-Year Growth Trajectory</strong>';
-  card.appendChild(title);
+      // Title
+      const title = document.createElement('div');
+      title.style.cssText = 'font-family:"Outfit",sans-serif;font-weight:700;margin-bottom:1rem;font-size:0.95rem';
+      title.innerHTML = '📊 <strong>10-Year Growth Trajectory</strong>';
+      card.appendChild(title);
 
-  // Growth chart
-  const chartWrap = document.createElement('div');
-  chartWrap.className = 'growth-chart-wrap';
-  const chartId = `growthChart_${Date.now()}`;
-  chartWrap.innerHTML = `<canvas id="${chartId}" aria-label="10-year growth chart" role="img" style="max-height:250px"></canvas>`;
-  card.appendChild(chartWrap);
+      // Growth chart
+      const chartWrap = document.createElement('div');
+      chartWrap.className = 'growth-chart-wrap';
+      const chartId = `growthChart_${Date.now()}`;
+      chartWrap.innerHTML = `<canvas id="${chartId}" aria-label="10-year growth chart" role="img" style="max-height:250px"></canvas>`;
+      card.appendChild(chartWrap);
 
-  // Key metrics
-  const metricsDiv = document.createElement('div');
-  metricsDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:1rem;font-size:0.75rem';
-  
-  const totalGrowth = projections.optimized_10yr - (analysis.monthly_surplus ? analysis.monthly_surplus * 120 : 0);
-  const annualGrowthRate = ((Math.pow(projections.optimized_10yr / 1, 1/10) - 1) * 100).toFixed(1);
-  
-  metricsDiv.innerHTML = `
+      // Key metrics
+      const metricsDiv = document.createElement('div');
+      metricsDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:1rem;font-size:0.75rem';
+
+      const totalGrowth = projections.optimized_10yr - (analysis.monthly_surplus ? analysis.monthly_surplus * 120 : 0);
+      const annualGrowthRate = ((Math.pow(projections.optimized_10yr / 1, 1 / 10) - 1) * 100).toFixed(1);
+
+      metricsDiv.innerHTML = `
     <div style="padding:0.75rem;background:rgba(34,197,94,0.08);border-radius:8px;border-left:3px solid #22c55e">
       <div style="color:var(--text-muted);font-weight:600;margin-bottom:0.3rem">Total Growth</div>
       <div style="font-weight:700;color:#22c55e;font-size:0.9rem">${formatCrLakh(projections.optimized_10yr - (analysis.current_savings || 0))}</div>
@@ -716,115 +844,115 @@ function buildGrowthAnalysis(projections, analysis) {
       <div style="font-weight:700;color:#4b5280;font-size:0.9rem">${formatCrLakh(projections.optimized_10yr)}</div>
     </div>
   `;
-  card.appendChild(metricsDiv);
+      card.appendChild(metricsDiv);
 
-  wrap.appendChild(card);
+      wrap.appendChild(card);
 
-  // Render chart on next frame
-  requestAnimationFrame(() => {
-    const canvas = document.getElementById(chartId);
-    if (!canvas || typeof Chart === 'undefined') return;
+      // Render chart on next frame
+      requestAnimationFrame(() => {
+        const canvas = document.getElementById(chartId);
+        if (!canvas || typeof Chart === 'undefined') return;
 
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    const textColor = isDark ? 'rgba(240, 242, 250, 0.6)' : 'rgba(18, 21, 31, 0.6)';
-    const gridColor = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        const textColor = isDark ? 'rgba(240, 242, 250, 0.6)' : 'rgba(18, 21, 31, 0.6)';
+        const gridColor = isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)';
 
-    // Generate 10-year data points with realistic growth
-    const years = [];
-    const optimizedData = [];
-    const currentData = [];
-    for (let yr = 0; yr <= 10; yr++) {
-      years.push(`Year ${yr}`);
-      // Simplified compound growth
-      const rate = 0.12; // moderate rate
-      optimizedData.push(Math.round((analysis.current_savings || 0) * Math.pow(1 + rate, yr) + (analysis.investable_amount || 0) * 12 * yr));
-      currentData.push(Math.round((analysis.current_savings || 0) * Math.pow(1.06, yr)));
+        // Generate 10-year data points with realistic growth
+        const years = [];
+        const optimizedData = [];
+        const currentData = [];
+        for (let yr = 0; yr <= 10; yr++) {
+          years.push(`Year ${yr}`);
+          // Simplified compound growth
+          const rate = 0.12; // moderate rate
+          optimizedData.push(Math.round((analysis.current_savings || 0) * Math.pow(1 + rate, yr) + (analysis.investable_amount || 0) * 12 * yr));
+          currentData.push(Math.round((analysis.current_savings || 0) * Math.pow(1.06, yr)));
+        }
+
+        new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: years,
+            datasets: [
+              {
+                label: 'Current Path (FD)',
+                data: currentData,
+                borderColor: '#4b5280',
+                backgroundColor: 'rgba(75, 82, 128, 0.05)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+                pointBackgroundColor: '#4b5280',
+                borderWidth: 2
+              },
+              {
+                label: 'Optimized Path (SIP)',
+                data: optimizedData,
+                borderColor: '#22c55e',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 2,
+                pointBackgroundColor: '#22c55e',
+                borderWidth: 3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: textColor, usePointStyle: true, font: { size: 11, weight: '600' } }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(5, 7, 15, 0.9)',
+                borderColor: 'rgba(245, 197, 24, 0.25)',
+                borderWidth: 1,
+                titleColor: '#f5c518',
+                bodyColor: 'rgba(240, 242, 250, 0.8)',
+                callbacks: { label: ctx => ` ${formatCrLakh(ctx.raw)}` }
+              }
+            },
+            scales: {
+              x: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: textColor,
+                  font: { size: 10 },
+                  callback: function (value) {
+                    // For category scales, Chart.js passes an index (number) here.
+                    const label = (this && typeof this.getLabelForValue === 'function')
+                      ? this.getLabelForValue(value)
+                      : String(value);
+                    return String(label).replace('Year ', 'Y');
+                  }
+                }
+              },
+              y: {
+                grid: { color: gridColor },
+                ticks: {
+                  color: textColor,
+                  font: { size: 10 },
+                  callback: v => v >= 1e7 ? `₹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v / 1e5).toFixed(0)}L` : `₹${formatINR(v)}`
+                }
+              }
+            },
+            interaction: { intersect: false, mode: 'index' }
+          }
+        });
+      });
+
+      return wrap;
     }
 
-    new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: years,
-        datasets: [
-          {
-            label: 'Current Path (FD)',
-            data: currentData,
-            borderColor: '#4b5280',
-            backgroundColor: 'rgba(75, 82, 128, 0.05)',
-            tension: 0.4,
-            fill: true,
-            pointRadius: 2,
-            pointBackgroundColor: '#4b5280',
-            borderWidth: 2
-          },
-          {
-            label: 'Optimized Path (SIP)',
-            data: optimizedData,
-            borderColor: '#22c55e',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-            tension: 0.4,
-            fill: true,
-            pointRadius: 2,
-            pointBackgroundColor: '#22c55e',
-            borderWidth: 3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { color: textColor, usePointStyle: true, font: { size: 11, weight: '600' } }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(5, 7, 15, 0.9)',
-            borderColor: 'rgba(245, 197, 24, 0.25)',
-            borderWidth: 1,
-            titleColor: '#f5c518',
-            bodyColor: 'rgba(240, 242, 250, 0.8)',
-            callbacks: { label: ctx => ` ${formatCrLakh(ctx.raw)}` }
-          }
-        },
-        scales: {
-          x: {
-            grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              callback: function(value) {
-                // For category scales, Chart.js passes an index (number) here.
-                const label = (this && typeof this.getLabelForValue === 'function')
-                  ? this.getLabelForValue(value)
-                  : String(value);
-                return String(label).replace('Year ', 'Y');
-              }
-            }
-          },
-          y: {
-            grid: { color: gridColor },
-            ticks: {
-              color: textColor,
-              font: { size: 10 },
-              callback: v => v >= 1e7 ? `₹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `₹${(v / 1e5).toFixed(0)}L` : `₹${formatINR(v)}`
-            }
-          }
-        },
-        interaction: { intersect: false, mode: 'index' }
-      }
-    });
-  });
-
-  return wrap;
-}
-
-// ─── Locked 10-Year Blueprint ─────────────────────────────
-function buildLockedSection(a) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
-  wrap.innerHTML = `
+    // ─── Locked 10-Year Blueprint ─────────────────────────────
+    function buildLockedSection(a) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      wrap.innerHTML = `
     <div class="locked-section">
       <div class="locked-content">
         <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🔮 Your 10-Year Wealth Blueprint</div>
@@ -839,72 +967,84 @@ function buildLockedSection(a) {
         <div class="lock-text">Full blueprint unlocked with your advisor session</div>
       </div>
     </div>`;
-  return wrap;
-}
+      return wrap;
+    }
 
-// ─── Hook CTA ─────────────────────────────────────────────
-function buildHookCTA(a, profile) {
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
-  const surplus = a.monthly_surplus || 0;
+    // ─── Hook CTA ─────────────────────────────────────────────
+    function buildHookCTA(a, profile) {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      const plan = a.plan || a;
+      const totals = plan.totals || {};
+      const surplus = totals.monthly_surplus || a.monthly_surplus || 0;
+      const investable = totals.investable_amount || a.investable_amount || 0;
+      const insights = plan.expense_insights || a.quick_wins || [];
 
-  const cta = document.createElement('div');
-  cta.className = 'hook-cta';
-  cta.id = 'hook-cta';
-  cta.innerHTML = `
+      const cta = document.createElement('div');
+      cta.className = 'hook-cta';
+      cta.id = 'hook-cta';
+      cta.innerHTML = `
     <span class="hook-emoji">💡</span>
-    <h2 class="hook-headline">${escapeHtml(a.hook_line || `Your ₹${formatINR(surplus)}/mo surplus could build ${formatCrLakh(a.projections.optimized_10yr)} in 10 years.`)}</h2>
+    <h2 class="hook-headline">${escapeHtml(plan.goal_nudge || a.hook_line || `Your ₹${formatINR(surplus)}/mo surplus can grow significantly with the right plan.`)}</h2>
     <p class="hook-subtitle">
-      Most people your age never realise this gap exists. A certified advisor builds you a custom roadmap —
-      turning your <em>₹${formatINR(a.investable_amount)}/month</em> into a compounding wealth engine.<br/><br/>
+      A certified SEBI-registered advisor builds you a custom roadmap —
+      turning your <em>₹${formatINR(investable)}/month</em> into a compounding wealth engine.<br/><br/>
       <strong>Would you like a personalized financial plan?</strong>
     </p>
-    ${a.quick_wins && a.quick_wins.length ? `
+    ${insights.length ? `
       <div style="text-align:left;margin-bottom:1.25rem;border-top:1px solid var(--border);padding-top:1rem">
-        <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem">⚡ Quick Wins This Month</div>
-        ${a.quick_wins.map(w => `<div style="font-size:0.8rem;color:var(--text-secondary);padding:0.3rem 0;border-bottom:1px solid var(--border-gold);opacity:0.8">→ ${escapeHtml(w)}</div>`).join('')}
+        <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem">💡 Key Insights</div>
+        ${insights.slice(0, 3).map(w => `<div style="font-size:0.8rem;color:var(--text-secondary);padding:0.3rem 0;border-bottom:1px solid var(--border-gold);opacity:0.8">→ ${escapeHtml(w)}</div>`).join('')}
       </div>` : ''}
     <div class="hook-buttons">
       <button class="btn-cta" id="yes-plan-btn">✨ Yes, show me how →</button>
       <button class="btn-skip" id="skip-plan-btn">Maybe later</button>
     </div>`;
 
-  cta.querySelector('#yes-plan-btn').onclick = () => {
-    cta.style.opacity = '0.5';
-    cta.style.pointerEvents = 'none';
-    sendMessage('Yes, I want a personalised financial plan', 'Yes, show me how →');
-    setTimeout(() => showAdvisorCard(a, profile), 1800);
-  };
-  cta.querySelector('#skip-plan-btn').onclick = () => {
-    sendMessage('Maybe later', 'Maybe later');
-    enableFreeChat('Ask me anything about your finances...');
-  };
+      cta.querySelector('#yes-plan-btn').onclick = () => {
+        cta.style.opacity = '0.5';
+        cta.style.pointerEvents = 'none';
+        sendMessage('Yes, I want a personalised financial plan', 'Yes, show me how →');
+        setTimeout(() => showAdvisorCard(a, profile), 1800);
+      };
+      cta.querySelector('#skip-plan-btn').onclick = () => {
+        sendMessage('Maybe later', 'Maybe later');
+        enableFreeChat('Ask me anything about your finances...');
+      };
 
-  wrap.appendChild(cta);
-  return wrap;
-}
+      wrap.appendChild(cta);
+      return wrap;
+    }
 
-// ─── Advisor Card ─────────────────────────────────────────
-function showAdvisorCard(a, profile) {
-  const specialisations = {
-    retirement: 'Retirement Planning & NPS Strategy',
-    house:      'Real Estate & Home Loan Advisory',
-    wealth:     'Portfolio Management & Wealth Growth',
-    education:  'Education Planning & Child Investments',
-  };
-  const riskDesc = {
-    conservative: 'debt-focused and capital-protection strategies',
-    moderate:     'balanced equity-debt portfolios',
-    aggressive:   'high-growth equity and small-cap portfolios',
-  };
-  const spec = specialisations[profile?.goal] || 'Comprehensive Wealth Planning';
-  const risk = riskDesc[profile?.risk] || 'diversified portfolios';
+    // ─── Advisor Card ─────────────────────────────────────────
+    function showAdvisorCard(a, profile) {
+      const goalText = String(profile?.goal || '').toLowerCase();
+      const specialisations = {
+        retirement: 'Retirement Planning & NPS Strategy',
+        house: 'Real Estate & Home Loan Advisory', home: 'Real Estate & Home Loan Advisory',
+        wealth: 'Portfolio Management & Wealth Growth',
+        education: 'Education Planning & Child Investments',
+        car: 'Asset Planning & Systematic Investing',
+        travel: 'Goal-Based Investment Planning', australia: 'Goal-Based Investment Planning',
+      };
+      const riskDesc = {
+        conservative: 'debt-focused and capital-protection strategies',
+        moderate: 'balanced equity-debt portfolios',
+        aggressive: 'high-growth equity and small-cap portfolios',
+      };
+      let spec = 'Comprehensive Wealth Planning';
+      for (const [k, v] of Object.entries(specialisations)) { if (goalText.includes(k)) { spec = v; break; } }
+      const risk = riskDesc[profile?.risk_profile] || 'diversified portfolios';
+      const salary = profile?.monthly_salary || 0;
+      const name = profile?.name || '';
+      const goal = profile?.goal || 'wealth growth';
+      const riskLabel = profile?.risk_profile || 'moderate';
 
-  const wrap = document.createElement('div');
-  wrap.className = 'msg bot';
-  wrap.style.cssText = 'max-width:100%;width:100%';
-  wrap.innerHTML = `
+      const wrap = document.createElement('div');
+      wrap.className = 'msg bot';
+      wrap.style.cssText = 'max-width:100%;width:100%';
+      wrap.innerHTML = `
     <div class="advisor-card">
       <div class="advisor-top">
         <div class="advisor-avatar">👨‍💼</div>
@@ -926,10 +1066,10 @@ function showAdvisorCard(a, profile) {
       </div>
       <div class="advisor-cta-title">📲 Connect Now</div>
       <div class="advisor-actions">
-        <a href="https://wa.me/919876543210?text=${encodeURIComponent(`Hi Piyush! My FinanceAI profile: Age ${profile?.age}, Income ₹${formatINR(profile?.income)}/mo, Goal: ${profile?.goal}. I'd love to discuss a personalised plan.`)}"
+        <a href="https://wa.me/919876543210?text=${encodeURIComponent(`Hi Piyush! I'm ${name}. My FinanceAI profile: Salary ₹${formatINR(salary)}/mo, Goal: ${goal}, Risk: ${riskLabel}. I'd love to discuss a personalised plan.`)}"
            target="_blank" class="action-btn whatsapp">💬 WhatsApp</a>
         <a href="tel:+919876543210" class="action-btn call">📞 Call Now</a>
-        <a href="mailto:piyush.tembhekar@financeai.in?subject=Financial Plan Enquiry&body=Hi Piyush,%0A%0AMy FinanceAI profile:%0AAge: ${profile?.age}%0AIncome: ₹${formatINR(profile?.income)}/month%0AGoal: ${profile?.goal}%0ARisk: ${profile?.risk}%0A%0APlease reach out to discuss a plan."
+        <a href="mailto:piyush.tembhekar@financeai.in?subject=Financial Plan Enquiry&body=Hi Piyush,%0A%0AI'm ${encodeURIComponent(name)}.%0ASalary: ₹${formatINR(salary)}/month%0AGoal: ${encodeURIComponent(goal)}%0ARisk: ${encodeURIComponent(riskLabel)}%0A%0APlease reach out to discuss a plan."
            class="action-btn email">✉️ Email</a>
         <a href="#" class="action-btn linkedin">🔗 LinkedIn</a>
       </div>
@@ -939,71 +1079,72 @@ function showAdvisorCard(a, profile) {
       <div class="advisor-note"><span>✓</span> Free consultation · No obligation · ₹0 cost</div>
     </div>`;
 
-  addElement(wrap);
+      addElement(wrap);
 
-  setTimeout(() => {
-    addBotMessage("☝️ Piyush is available **Mon–Sat, 10AM–7PM IST**.\n\nYou can ask me any financial questions in the meantime. 😊");
-    enableFreeChat('Ask me anything about your finances...');
-  }, 600);
-}
-
-// ─── Free Chat ────────────────────────────────────────────
-function enableFreeChat(placeholder) {
-  const input = document.getElementById('chat-input');
-  const btn   = document.getElementById('send-btn');
-  input.placeholder = placeholder || 'Ask me anything...';
-  input.disabled    = false;
-  btn.disabled      = false;
-  isWaiting         = false;
-}
-
-// ─── Init ─────────────────────────────────────────────────
-async function initSession() {
-  // Clear messages
-  const msgs   = document.getElementById('messages');
-  const typing = document.getElementById('typing-indicator');
-  Array.from(msgs.children).forEach(el => { if (el !== typing) el.remove(); });
-  if (projChart) { projChart.destroy(); projChart = null; }
-
-  document.getElementById('progress-header').style.display = '';
-  document.getElementById('chat-input').disabled = true;
-  document.getElementById('send-btn').disabled   = true;
-  setProgress(0, 'Gathering your profile');
-  clearChips();
-  setHint('');
-  isWaiting = false;
-  setServerStatus('connecting');
-
-  showTyping(true);
-  await sleep(500);
-
-  try {
-    const data = await apiPost('/start', {});
-    sessionId    = data.sessionId;
-    currentPhase = data.phase;
-    setServerStatus('connected');
-    showTyping(false);
-    addBotMessage(data.message);
-    if (data.step) applyStep(data.step);
-    else {
-      document.getElementById('chat-input').disabled = false;
-      document.getElementById('send-btn').disabled   = false;
+      setTimeout(() => {
+        addBotMessage("☝️ Piyush is available **Mon–Sat, 10AM–7PM IST**.\n\nYou can ask me any financial questions in the meantime. 😊");
+        enableFreeChat('Ask me anything about your finances...');
+      }, 600);
     }
-  } catch (err) {
-    showTyping(false);
-    setServerStatus('error');
-    showConnectionError(err.message);
-  }
-}
 
-function showConnectionError(errMsg) {
-  const msgs   = document.getElementById('messages');
-  const typing = document.getElementById('typing-indicator');
+    // ─── Free Chat ────────────────────────────────────────────
+    function enableFreeChat(placeholder) {
+      const input = document.getElementById('chat-input');
+      const btn = document.getElementById('send-btn');
+      input.placeholder = placeholder || 'Ask me anything...';
+      input.disabled = false;
+      btn.disabled = false;
+      isWaiting = false;
+    }
 
-  const card = document.createElement('div');
-  card.className = 'msg bot';
-  card.style.cssText = 'max-width:100%;width:100%;';
-  card.innerHTML = `
+    // ─── Init ─────────────────────────────────────────────────
+    async function initSession() {
+      // Clear messages
+      const msgs = document.getElementById('messages');
+      const typing = document.getElementById('typing-indicator');
+      Array.from(msgs.children).forEach(el => { if (el !== typing) el.remove(); });
+      if (projChart) { projChart.destroy(); projChart = null; }
+
+      document.getElementById('progress-header').style.display = '';
+      document.getElementById('chat-input').disabled = true;
+      document.getElementById('send-btn').disabled = true;
+      setProgress(0, 'Gathering your profile');
+      clearChips();
+      setHint('');
+      isWaiting = false;
+      analysisRendered = false;
+      setServerStatus('connecting');
+
+      showTyping(true);
+      await sleep(500);
+
+      try {
+        const data = await apiPost('/start', {});
+        sessionId = data.sessionId;
+        currentPhase = data.phase;
+        setServerStatus('connected');
+        showTyping(false);
+        addBotMessage(data.message);
+        if (data.step) applyStep(data.step);
+        else {
+          document.getElementById('chat-input').disabled = false;
+          document.getElementById('send-btn').disabled = false;
+        }
+      } catch (err) {
+        showTyping(false);
+        setServerStatus('error');
+        showConnectionError(err.message);
+      }
+    }
+
+    function showConnectionError(errMsg) {
+      const msgs = document.getElementById('messages');
+      const typing = document.getElementById('typing-indicator');
+
+      const card = document.createElement('div');
+      card.className = 'msg bot';
+      card.style.cssText = 'max-width:100%;width:100%;';
+      card.innerHTML = `
     <div style="
       background: rgba(239,68,68,0.08);
       border: 1px solid rgba(239,68,68,0.35);
@@ -1031,50 +1172,51 @@ function showConnectionError(errMsg) {
         🔄 Retry Connection
       </button>
     </div>`;
-  msgs.insertBefore(card, typing);
-  scrollToBottom();
-}
-
-// ─── Event Listeners ──────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  // Theme
-  const savedTheme = localStorage.getItem('financeai_theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', savedTheme);
-  document.getElementById('theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
-    localStorage.setItem('financeai_theme', next);
-    if (projChart) {
-      const isDark = next === 'dark';
-      const tc = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
-      projChart.options.scales.x.ticks.color = tc;
-      projChart.options.scales.y.ticks.color = tc;
-      projChart.options.plugins.legend.labels.color = tc;
-      projChart.update();
+      msgs.insertBefore(card, typing);
+      scrollToBottom();
     }
-  });
 
-  // Restart
-  document.getElementById('restart-btn').addEventListener('click', initSession);
+    // ─── Event Listeners ──────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      // Theme
+      const savedTheme = localStorage.getItem('financeai_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      document.getElementById('theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 
-  // Send
-  const sendBtn  = document.getElementById('send-btn');
-  const chatInput = document.getElementById('chat-input');
+      document.getElementById('theme-toggle').addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+        localStorage.setItem('financeai_theme', next);
+        if (projChart) {
+          const isDark = next === 'dark';
+          const tc = isDark ? 'rgba(240,242,250,0.6)' : 'rgba(18,21,31,0.6)';
+          projChart.options.scales.x.ticks.color = tc;
+          projChart.options.scales.y.ticks.color = tc;
+          projChart.options.plugins.legend.labels.color = tc;
+          projChart.update();
+        }
+      });
 
-  sendBtn.addEventListener('click', () => sendMessage());
-  chatInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  });
-  chatInput.addEventListener('input', () => {
-    sendBtn.disabled = chatInput.value.trim() === '' || isWaiting;
-  });
+      // Restart
+      document.getElementById('restart-btn').addEventListener('click', initSession);
 
-  // Start
-  initSession();
-});
-</script>
+      // Send
+      const sendBtn = document.getElementById('send-btn');
+      const chatInput = document.getElementById('chat-input');
+
+      sendBtn.addEventListener('click', () => sendMessage());
+      chatInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+      });
+      chatInput.addEventListener('input', () => {
+        sendBtn.disabled = chatInput.value.trim() === '' || isWaiting;
+      });
+
+      // Start
+      initSession();
+    });
+  </script>
 </body>
+
 </html>

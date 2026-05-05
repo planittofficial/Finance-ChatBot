@@ -1,248 +1,355 @@
 'use strict';
 
-/**
- * services/finance.js
- * ────────────────────
- * Pure financial calculation functions.
- * Used as fallback when Groq API is unavailable,
- * and for server-side validation of Groq's output.
- */
-
-// ─── Return rates by risk profile ─────────────────────────────────────────────
-const RATES = {
-  conservative: 0.08,
-  moderate:     0.12,
-  aggressive:   0.16,
+// ─── Assumed Annual Returns by Fund Type ─────────────────────────────────────
+const ASSUMED_RETURNS = {
+  flexi_cap: 0.12,
+  mid_cap: 0.14,
+  small_cap: 0.16,
 };
-const FD_RATE = 0.065; // Bank FD / savings baseline
 
-/**
- * Future Value of a lump sum + recurring monthly investment.
- * @param {number} principal  - Starting capital
- * @param {number} monthly    - Monthly recurring investment
- * @param {number} annualRate - Annual interest rate (decimal)
- * @param {number} years      - Number of years
- * @returns {number}
- */
-function futureValue(principal, monthly, annualRate, years) {
-  const n  = years * 12;
-  const mr = annualRate / 12;
-  const lumpsumGrowth = principal * Math.pow(1 + annualRate, years);
-  // SIP future value formula: P × [(1+r)^n - 1] / r × (1+r)
-  const sipGrowth = monthly > 0
-    ? monthly * ((Math.pow(1 + mr, n) - 1) / mr) * (1 + mr)
-    : 0;
-  return Math.round(lumpsumGrowth + sipGrowth);
+// ─── Default Goal Corpus Estimates (₹) ───────────────────────────────────────
+const GOAL_CORPUS = {
+  car:        800000,
+  bike:       250000,
+  australia:  500000,
+  travel:     500000,
+  trip:       400000,
+  house:      1500000,
+  home:       1500000,
+  flat:       1500000,
+  education:  1000000,
+  wedding:    1200000,
+  marriage:   1200000,
+  retirement: 10000000,
+  wealth:     5000000,
+  emergency:  300000,
+  laptop:     100000,
+  phone:      80000,
+};
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+function toNumber(v) {
+  return Number.isFinite(v) ? v : 0;
 }
-
-/**
- * Generate complete financial projections from session profile.
- * Returns the same schema as ANALYSIS_PROMPT expects from Groq.
- */
-function generateProjections(profile) {
-  const { age, income, expenses, savings, risk, goal } = profile;
-  const surplus        = income - expenses;
-  const investable     = Math.round(surplus * 0.70);
-  const rate           = RATES[risk] || RATES.moderate;
-  const yearsToRetire  = Math.max(1, 60 - age);
-  const annualExpenses = expenses * 12;
-  const retirementNeed = annualExpenses * 25; // 4% withdrawal rule
-
-  // ── Current path (FD only, no new investment) ────────────────────────────
-  const cur3  = futureValue(savings, 0,          FD_RATE, 3);
-  const cur5  = futureValue(savings, 0,          FD_RATE, 5);
-  const cur10 = futureValue(savings, 0,          FD_RATE, 10);
-
-  // ── Optimized path (MF SIPs at risk rate) ───────────────────────────────
-  const opt3  = futureValue(savings, investable, rate,         3);
-  const opt5  = futureValue(savings, investable, rate,         5);
-  const opt10 = futureValue(savings, investable, rate,         10);
-
-  // ── Max (advisor-guided: +25% SIP, +3% rate boost) ──────────────────────
-  const max10 = futureValue(savings, Math.round(investable * 1.25), rate + 0.03, 10);
-
-  // ── Retirement projection ──────────────────────────────────────────────
-  const atRetirement   = futureValue(savings, investable, rate, yearsToRetire);
-  const shortfall      = Math.max(0, retirementNeed - atRetirement);
-
-  // ── Goal timeline ───────────────────────────────────────────────────────
-  const goalTargets = {
-    retirement: retirementNeed,
-    house:      income * 60,       // ~5× annual income
-    wealth:     savings * 10,      // 10× current savings
-    education:  income * 36,       // 3 years of income
-  };
-  const goalTarget = goalTargets[goal] || goalTargets.wealth;
-  const goalTimelineYears = estimateGoalTimeline(savings, investable, rate, goalTarget);
-
-  // ── Wealth gap ─────────────────────────────────────────────────────────
-  const wealthGap = opt10 - cur10;
-
-  // ── Key risk ───────────────────────────────────────────────────────────
-  const savingsRate = surplus / income;
-  let keyRisk = 'Inflation eroding idle savings (FD returns < real inflation)';
-  if (savingsRate < 0.15) keyRisk = 'Low savings rate — any income shock could be critical';
-  if (risk === 'aggressive' && savings < income * 3) keyRisk = 'Insufficient emergency fund for aggressive investments';
-  if (age > 50 && shortfall > 500000) keyRisk = 'Insufficient retirement corpus at current savings pace';
-
-  // ── Quick wins ─────────────────────────────────────────────────────────
-  const quickWins = buildQuickWins(profile, surplus, investable);
-
-  // ── Hook line ──────────────────────────────────────────────────────────
-  const hookLine = buildHookLine(wealthGap, opt10, investable, goal);
-
-  // ── Insights ───────────────────────────────────────────────────────────
-  const insights = buildInsights(profile, surplus, investable, opt10, cur10, yearsToRetire);
-
-  return {
-    projections: {
-      current_3yr:    cur3,
-      current_5yr:    cur5,
-      current_10yr:   cur10,
-      optimized_3yr:  opt3,
-      optimized_5yr:  opt5,
-      optimized_10yr: opt10,
-      max_10yr:       max10,
-    },
-    insights,
-    wealth_gap:           wealthGap,
-    hook_line:            hookLine,
-    monthly_surplus:      surplus,
-    investable_amount:    investable,
-    retirement_shortfall: shortfall,
-    goal_timeline_years:  goalTimelineYears,
-    key_risk:             keyRisk,
-    quick_wins:           quickWins,
-  };
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function estimateGoalTimeline(principal, monthly, rate, target) {
-  // Binary search for years until FV >= target
-  let lo = 0, hi = 40;
-  while (lo < hi) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (futureValue(principal, monthly, rate, mid) >= target) hi = mid;
-    else lo = mid + 1;
-  }
-  return Math.min(lo, 40);
-}
-
-function buildHookLine(gap, opt10, investable, goal) {
-  const fmtGap = formatCrLakh(gap);
-  const fmtOpt = formatCrLakh(opt10);
-  return `₹${formatINR(investable)}/month SIP could grow to ₹${fmtOpt} in 10 years — don't leave ₹${fmtGap} behind.`;
-}
-
-function buildInsights(profile, surplus, investable, opt10, cur10, yearsToRetire) {
-  const { age, income, expenses, savings, risk, goal } = profile;
-  const rate = RATES[risk] || RATES.moderate;
-
-  return [
-    {
-      title: '💡 Your Savings Rate',
-      description: `You save ₹${formatINR(surplus)}/month — ${((surplus / income) * 100).toFixed(0)}% of income. Directing ₹${formatINR(investable)} into a ${risk} SIP portfolio could grow this to ₹${formatCrLakh(opt10)} over 10 years.`,
-      impact: `+₹${formatCrLakh(opt10 - cur10)} vs. keeping in an FD`,
-    },
-    {
-      title: '⏱️ The Compounding Clock',
-      description: `At ${age}, you have ${yearsToRetire} years until retirement. Each year of delay costs roughly ₹${formatCrLakh(Math.round(opt10 * 0.08))} in compounding loss. Starting this month matters more than the amount.`,
-      impact: 'Every month of delay = lost lakhs',
-    },
-    {
-      title: `🎯 ${goal.charAt(0).toUpperCase() + goal.slice(1)} Goal Timeline`,
-      description: `Based on your ₹${formatINR(investable)}/month investable surplus and ${risk} risk profile, your ${goal} goal has a realistic timeline. An advisor can optimise this further with tax-efficient instruments.`,
-      impact: `Goal possible — advisor can fast-track it`,
-    },
-  ];
-}
-
-function buildQuickWins(profile, surplus, investable) {
-  const { savings, income, risk, goal } = profile;
-  const wins = [];
-
-  // Emergency fund check
-  const emergencyTarget = income * 6;
-  if (savings < emergencyTarget) {
-    wins.push(`Build your emergency fund to ₹${formatINR(emergencyTarget)} (6 months of income) before investing.`);
-  }
-
-  // SIP suggestion
-  const sipTypes = { conservative: 'debt hybrid MF', moderate: 'flexi-cap MF', aggressive: 'small/mid cap MF' };
-  wins.push(`Start a ₹${formatINR(investable)}/month SIP in a ${sipTypes[risk] || 'diversified'} this month.`);
-
-  // Tax saving
-  wins.push(`Check if you are using your full ₹1.5L Section 80C limit — ELSS funds give equity returns + tax savings.`);
-
-  // Goal-specific
-  const goalWins = {
-    house:      'Get pre-approved for a home loan to know your exact purchasing capacity today.',
-    education:  'Open a Sukanya Samriddhi / PPF account for guaranteed, tax-free education corpus.',
-    retirement: 'Activate your NPS account — employer contributions are an instant 10% return on investment.',
-    wealth:     'Consider rebalancing any idle FDs above 3 months of expenses into equity MFs.',
-  };
-  if (goalWins[goal]) wins.push(goalWins[goal]);
-
-  return wins.slice(0, 3);
-}
-
-// ─── Formatting helpers ───────────────────────────────────────────────────────
 
 function formatINR(n) {
-  if (!n && n !== 0) return '0';
-  return new Intl.NumberFormat('en-IN').format(Math.round(n));
+  return new Intl.NumberFormat('en-IN').format(Math.round(toNumber(n)));
 }
 
 function formatCrLakh(n) {
-  if (n >= 1e7) return `${(n / 1e7).toFixed(2)} Cr`;
-  if (n >= 1e5) return `${(n / 1e5).toFixed(1)} L`;
-  return formatINR(n);
+  n = toNumber(n);
+  if (n >= 1e7) return `₹${(n / 1e7).toFixed(2)} Cr`;
+  if (n >= 1e5) return `₹${(n / 1e5).toFixed(1)} Lakh`;
+  return `₹${formatINR(n)}`;
 }
 
-// ─── Profile validation ───────────────────────────────────────────────────────
+// ─── SIP Future Value (standard compound formula) ────────────────────────────
+function fvSip(monthlyAmount, annualRate, years) {
+  const n = years * 12;
+  const r = annualRate / 12;
+  if (monthlyAmount <= 0 || n <= 0) return 0;
+  return Math.round(monthlyAmount * ((Math.pow(1 + r, n) - 1) / r) * (1 + r));
+}
 
-const VALIDATORS = {
-  age:      v => Number.isFinite(v) && v >= 18 && v <= 80,
-  income:   v => Number.isFinite(v) && v >= 1000,
-  expenses: v => Number.isFinite(v) && v >= 0,
-  savings:  v => Number.isFinite(v) && v >= 0,
-  risk:     v => ['conservative', 'moderate', 'aggressive'].includes(v),
-  goal:     v => ['retirement', 'house', 'wealth', 'education'].includes(v),
-};
+// ─── SIP Months Needed to Reach a Corpus ─────────────────────────────────────
+function monthsToCorpus(monthlyAmount, annualRate, targetCorpus) {
+  if (monthlyAmount <= 0 || targetCorpus <= 0) return Infinity;
+  const r = annualRate / 12;
+  // FV = P * [((1+r)^n - 1)/r] * (1+r)
+  // Solve for n: n = ln(1 + targetCorpus*r / (P*(1+r))) / ln(1+r)
+  const numerator = Math.log(1 + (targetCorpus * r) / (monthlyAmount * (1 + r)));
+  const denominator = Math.log(1 + r);
+  return Math.ceil(numerator / denominator);
+}
 
+// ─── Risk-Based Allocation ───────────────────────────────────────────────────
+function allocationByRisk(risk) {
+  const key = String(risk || 'moderate').toLowerCase();
+  if (key === 'conservative') {
+    return { flexi_cap: 0.7, mid_cap: 0.2, small_cap: 0.1 };
+  }
+  if (key === 'aggressive') {
+    return { flexi_cap: 0.3, mid_cap: 0.3, small_cap: 0.4 };
+  }
+  return { flexi_cap: 0.5, mid_cap: 0.3, small_cap: 0.2 }; // moderate
+}
+
+// ─── Blended Return Rate Based on Risk Allocation ────────────────────────────
+function blendedReturnRate(risk) {
+  const allocation = allocationByRisk(risk);
+  let rate = 0;
+  for (const [fundType, weight] of Object.entries(allocation)) {
+    rate += ASSUMED_RETURNS[fundType] * weight;
+  }
+  return rate;
+}
+
+// ─── Projected Value Using Blended Allocation ────────────────────────────────
+function projectedValue(monthlySip, years, risk) {
+  const allocation = allocationByRisk(risk);
+  let total = 0;
+  for (const [fundType, weight] of Object.entries(allocation)) {
+    total += fvSip(monthlySip * weight, ASSUMED_RETURNS[fundType], years);
+  }
+  return Math.round(total);
+}
+
+// ─── Goal Detection & Corpus Lookup ──────────────────────────────────────────
+function detectGoalCorpus(goalText) {
+  const text = String(goalText || '').toLowerCase();
+  for (const [keyword, corpus] of Object.entries(GOAL_CORPUS)) {
+    if (text.includes(keyword)) {
+      return { keyword, corpus };
+    }
+  }
+  // Default fallback — general wealth
+  return { keyword: 'wealth', corpus: 5000000 };
+}
+
+// ─── Goal-Based Projection ──────────────────────────────────────────────────
+function calculateGoalProjection(goal, monthlySip, risk) {
+  const { keyword, corpus } = detectGoalCorpus(goal);
+  const rate = blendedReturnRate(risk);
+  const months = monthsToCorpus(monthlySip, rate, corpus);
+  const years = (months / 12).toFixed(1);
+  const isAchievable = months < 360; // within 30 years
+
+  // Motivational label map
+  const goalLabels = {
+    car: '🚗 Dream Car',
+    bike: '🏍️ New Bike',
+    australia: '✈️ Australia Trip',
+    travel: '✈️ Dream Trip',
+    trip: '✈️ Travel Goal',
+    house: '🏠 Dream Home (Down Payment)',
+    home: '🏠 Dream Home (Down Payment)',
+    flat: '🏠 Your Own Flat',
+    education: '🎓 Education Fund',
+    wedding: '💍 Wedding Fund',
+    marriage: '💍 Wedding Fund',
+    retirement: '🏖️ Retirement Corpus',
+    wealth: '💰 Wealth Goal',
+    emergency: '🛡️ Emergency Fund',
+    laptop: '💻 New Laptop',
+    phone: '📱 New Phone',
+  };
+
+  const label = goalLabels[keyword] || '🎯 Your Goal';
+
+  return {
+    goal_label: label,
+    goal_keyword: keyword,
+    target_corpus: corpus,
+    target_corpus_formatted: formatCrLakh(corpus),
+    months_needed: isAchievable ? months : null,
+    years_needed: isAchievable ? parseFloat(years) : null,
+    is_achievable: isAchievable,
+    monthly_sip: monthlySip,
+    assumed_return: (rate * 100).toFixed(1) + '% p.a.',
+    motivation: isAchievable
+      ? `${label} is ${years} years away at ₹${formatINR(monthlySip)}/month SIP!`
+      : `${label} needs a higher monthly SIP or a longer horizon. Let's plan with an advisor.`,
+  };
+}
+
+// ─── Per-Category Expense Optimization ──────────────────────────────────────
+function calculateCategoryOptimization(income, expenses) {
+  const categories = [
+    {
+      key: 'basic_needs',
+      label: 'Basic Needs',
+      icon: '🏠',
+      amount: toNumber(expenses.basic_needs),
+      ideal_pct: 50, // 50/30/20 rule: needs
+      tip: 'Check for cheaper grocery alternatives, optimize rent, or cook at home more.',
+    },
+    {
+      key: 'bills_payments',
+      label: 'Bills & Payments',
+      icon: '📄',
+      amount: toNumber(expenses.bills_payments),
+      ideal_pct: 20,
+      tip: 'Refinance high-interest loans, compare insurance premiums, automate payments to avoid penalties.',
+    },
+    {
+      key: 'personal_spending',
+      label: 'Personal Spending',
+      icon: '🛍️',
+      amount: toNumber(expenses.personal_spending),
+      ideal_pct: 15,
+      tip: 'Audit subscriptions you rarely use, set a monthly eating-out budget, and use the 24-hour rule for purchases.',
+    },
+    {
+      key: 'extra_unexpected',
+      label: 'Extra / Unexpected',
+      icon: '🚑',
+      amount: toNumber(expenses.extra_unexpected),
+      ideal_pct: 10,
+      tip: 'Build an emergency fund (3-6 months expenses) to reduce the financial shock of unexpected events.',
+    },
+  ];
+
+  const totalExpenses = categories.reduce((s, c) => s + c.amount, 0);
+
+  return categories.map(cat => {
+    const actual_pct = income > 0 ? Math.round((cat.amount / income) * 100) : 0;
+    const is_over = actual_pct > cat.ideal_pct;
+    const potential_saving = is_over
+      ? Math.round(cat.amount - (income * cat.ideal_pct / 100))
+      : 0;
+
+    return {
+      ...cat,
+      actual_pct,
+      is_over_budget: is_over,
+      potential_monthly_saving: potential_saving,
+      potential_monthly_saving_formatted: potential_saving > 0 ? `₹${formatINR(potential_saving)}` : '—',
+      recommendation: is_over
+        ? `${cat.icon} ${cat.label} is ${actual_pct}% of income (ideal: ≤${cat.ideal_pct}%). ${cat.tip} Potential saving: ₹${formatINR(potential_saving)}/month.`
+        : `${cat.icon} ${cat.label} is well within budget at ${actual_pct}% (ideal: ≤${cat.ideal_pct}%).`,
+    };
+  });
+}
+
+// ─── Build Goal-Specific Motivational Hint ──────────────────────────────────
+function buildGoalHint(goal, monthlySip, risk) {
+  if (!goal) return 'Set a financial goal to see how your SIP can make it happen!';
+
+  const projection = calculateGoalProjection(goal, monthlySip, risk);
+  return projection.motivation;
+}
+
+// ─── Main Financial Plan Calculation ─────────────────────────────────────────
+function calculateFinancialPlan(profile) {
+  const income = toNumber(profile.monthly_salary);
+  const expenses = profile.expenses || {};
+
+  const basicNeeds = toNumber(expenses.basic_needs);
+  const billsPayments = toNumber(expenses.bills_payments);
+  const personalSpending = toNumber(expenses.personal_spending);
+  const extraUnexpected = toNumber(expenses.extra_unexpected);
+
+  const totalExpenses = basicNeeds + billsPayments + personalSpending + extraUnexpected;
+  const monthlySurplus = Math.max(0, income - totalExpenses);
+  const suggestedSavings = Math.round(monthlySurplus * 0.2); // 20% liquid buffer
+  const investableAmount = Math.max(0, monthlySurplus - suggestedSavings);
+  const savingsRate = income > 0 ? Math.round((monthlySurplus / income) * 100) : 0;
+
+  // Fund allocation
+  const fundMix = allocationByRisk(profile.risk_profile);
+
+  // Time-horizon projections
+  const projections = [3, 5, 10, 15, 20].map((years) => ({
+    years,
+    monthly_investment: investableAmount,
+    expected_value: projectedValue(investableAmount, years, profile.risk_profile),
+    expected_value_formatted: formatCrLakh(projectedValue(investableAmount, years, profile.risk_profile)),
+  }));
+
+  // Per-category optimization
+  const categoryOptimization = calculateCategoryOptimization(income, expenses);
+  const totalPotentialSaving = categoryOptimization.reduce((s, c) => s + c.potential_monthly_saving, 0);
+
+  // Goal projection
+  const goalProjection = calculateGoalProjection(
+    profile.goal,
+    investableAmount,
+    profile.risk_profile
+  );
+
+  // Expense insights (richer than before)
+  const expenseInsights = [];
+
+  categoryOptimization.forEach(cat => {
+    if (cat.is_over_budget) {
+      expenseInsights.push(cat.recommendation);
+    }
+  });
+
+  if (savingsRate < 20) {
+    expenseInsights.push(`⚠️ Your savings rate is ${savingsRate}% — aim for at least 20% for long-term wealth.`);
+  } else if (savingsRate >= 40) {
+    expenseInsights.push(`🌟 Excellent savings rate of ${savingsRate}%! Channel the surplus into diversified SIPs.`);
+  }
+
+  if (expenseInsights.length === 0) {
+    expenseInsights.push('✅ Your expense mix is balanced. Focus on automating monthly SIPs for consistency.');
+  }
+
+  // Expense breakdown for display
+  const expenseBreakdown = {
+    basic_needs: { amount: basicNeeds, pct: income > 0 ? Math.round((basicNeeds / income) * 100) : 0, label: 'Basic Needs' },
+    bills_payments: { amount: billsPayments, pct: income > 0 ? Math.round((billsPayments / income) * 100) : 0, label: 'Bills & Payments' },
+    personal_spending: { amount: personalSpending, pct: income > 0 ? Math.round((personalSpending / income) * 100) : 0, label: 'Personal Spending' },
+    extra_unexpected: { amount: extraUnexpected, pct: income > 0 ? Math.round((extraUnexpected / income) * 100) : 0, label: 'Extra / Unexpected' },
+    savings_surplus: { amount: monthlySurplus, pct: savingsRate, label: 'Savings & Investment' },
+  };
+
+  return {
+    totals: {
+      monthly_salary: income,
+      total_expenses: totalExpenses,
+      monthly_surplus: monthlySurplus,
+      suggested_savings: suggestedSavings,
+      investable_amount: investableAmount,
+      savings_rate: savingsRate,
+      total_potential_saving: totalPotentialSaving,
+    },
+    expense_breakdown: expenseBreakdown,
+    category_optimization: categoryOptimization,
+    fund_mix: fundMix,
+    fund_mix_amounts: {
+      flexi_cap: Math.round(investableAmount * fundMix.flexi_cap),
+      mid_cap: Math.round(investableAmount * fundMix.mid_cap),
+      small_cap: Math.round(investableAmount * fundMix.small_cap),
+    },
+    assumptions: {
+      returns: ASSUMED_RETURNS,
+      savings_buffer_pct: 20,
+    },
+    projections,
+    goal_projection: goalProjection,
+    expense_insights: expenseInsights,
+    goal_nudge: buildGoalHint(profile.goal, investableAmount, profile.risk_profile),
+  };
+}
+
+// ─── Validation ─────────────────────────────────────────────────────────────
 function validateProfileField(field, value) {
-  const validator = VALIDATORS[field];
-  if (!validator) return { valid: false, error: `Unknown field: ${field}` };
-  if (!validator(value)) return { valid: false, error: getValidationError(field) };
+  const str = String(value || '').trim();
+  if (field === 'name') return { valid: str.length >= 2, error: 'Please enter a valid name (at least 2 characters).' };
+  if (field === 'address') return { valid: str.length >= 8, error: 'Please enter your full address (at least 8 characters).' };
+  if (field === 'phone') return { valid: /^[6-9]\d{9}$/.test(str), error: 'Please enter a valid 10-digit Indian mobile number starting with 6-9.' };
+  if (field === 'monthly_salary') {
+    const n = Number(value);
+    return { valid: Number.isFinite(n) && n >= 5000, error: 'Please enter a valid monthly salary (minimum ₹5,000).' };
+  }
+
+  const expenseFields = ['basic_needs', 'bills_payments', 'personal_spending', 'extra_unexpected'];
+  if (expenseFields.includes(field)) {
+    const n = Number(value);
+    return { valid: Number.isFinite(n) && n >= 0, error: 'Please enter a valid monthly expense amount (0 or more).' };
+  }
+
+  if (field === 'risk_profile') {
+    return {
+      valid: ['conservative', 'moderate', 'aggressive'].includes(str.toLowerCase()),
+      error: 'Risk profile must be conservative, moderate, or aggressive.',
+    };
+  }
+
   return { valid: true };
 }
 
-function getValidationError(field) {
-  const errors = {
-    age:      'Age must be between 18 and 80',
-    income:   'Income must be at least ₹1,000/month',
-    expenses: 'Expenses cannot be negative',
-    savings:  'Savings cannot be negative',
-    risk:     'Risk must be conservative, moderate, or aggressive',
-    goal:     'Goal must be retirement, house, wealth, or education',
-  };
-  return errors[field] || 'Invalid value';
-}
-
-function isProfileComplete(profile) {
-  return ['age', 'income', 'expenses', 'savings', 'risk', 'goal'].every(
-    field => profile[field] !== null && profile[field] !== undefined
-  );
-}
-
 module.exports = {
-  futureValue,
-  generateProjections,
-  validateProfileField,
-  isProfileComplete,
   formatINR,
   formatCrLakh,
-  RATES,
-  FD_RATE,
+  calculateFinancialPlan,
+  calculateGoalProjection,
+  calculateCategoryOptimization,
+  validateProfileField,
+  allocationByRisk,
+  blendedReturnRate,
+  ASSUMED_RETURNS,
+  GOAL_CORPUS,
 };

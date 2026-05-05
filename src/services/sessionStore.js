@@ -32,13 +32,18 @@ function createSession(userId, name) {
 
     // ── Financial profile (populated step by step) ──
     profile: {
-      age:         null,
-      income:      null,
-      expenses:    null,
-      savings:     null,
-      risk:        null,   // 'conservative' | 'moderate' | 'aggressive'
-      goal:        null,   // 'retirement' | 'house' | 'wealth' | 'education'
-      investments: [],
+      name: null,
+      address: null,
+      phone: null,
+      monthly_salary: null,
+      expenses: {
+        basic_needs: null,
+        bills_payments: null,
+        personal_spending: null,
+        extra_unexpected: null,
+      },
+      risk_profile: 'moderate',
+      goal: null,
     },
 
     // ── Conversation state machine ──────────────────
