@@ -7,6 +7,52 @@ const Lead = require('../models/Lead');
 const leadsController = require('./leadsController');
 const { CHAT_PROMPT, GOAL_MOTIVATION_PROMPT, buildProfileContext } = require('../prompts/system');
 
+function hasMongo() {
+  return !!process.env.MONGODB_URI;
+}
+
+function buildLeadSetFromSession(session) {
+  const profile = session?.profile || {};
+  const expenses = profile.expenses || {};
+
+  const set = {
+    userId: session?.userId || null,
+    sessionId: session?.id,
+    name: profile.name || session?.name || undefined,
+    phone: profile.phone || undefined,
+    address: profile.address || undefined,
+    profile: profile,
+    monthlySalary: profile.monthly_salary ?? null,
+    goal: profile.goal ?? '',
+    riskProfile: profile.risk_profile ?? 'moderate',
+    expenseBreakdown: {
+      basic_needs: expenses.basic_needs ?? null,
+      bills_payments: expenses.bills_payments ?? null,
+      personal_spending: expenses.personal_spending ?? null,
+      extra_unexpected: expenses.extra_unexpected ?? null,
+    },
+    chatTranscript: Array.isArray(session?.history) ? session.history : [],
+    updatedAt: new Date(),
+  };
+
+  if (session?.analysis) set.analysis = session.analysis;
+  return set;
+}
+
+async function upsertLeadFromSession(session, extraSet = {}) {
+  if (!hasMongo()) return;
+  try {
+    const baseSet = buildLeadSetFromSession(session);
+    await Lead.updateOne(
+      { sessionId: session.id },
+      { $set: { ...baseSet, ...extraSet } },
+      { upsert: true }
+    );
+  } catch (e) {
+    console.error('[MongoDB Lead Upsert]', e.message);
+  }
+}
+
 // ─── Collection Steps ────────────────────────────────────────────────────────
 const STEPS = [
   { key: 'name', question: '👋 Welcome to your PMS wealth assistant! I\'m here to help you build a smart investment plan. Let\'s start — what is your full name?' },
@@ -281,28 +327,13 @@ async function handleCollectPhase(session, userMessage) {
   });
 
   // Save lead to MongoDB
-  try {
-    if (process.env.MONGODB_URI) {
-      await Lead.updateOne(
-        { sessionId: session.id },
-        {
-          $set: {
-            userId: session.userId,
-            name: session.profile.name,
-            phone: session.profile.phone,
-            address: session.profile.address,
-            sessionId: session.id,
-            profile: session.profile,
-            analysis: { plan, lead_summary: summary, advisor },
-            status: 'completed',
-          },
-        },
-        { upsert: true }
-      );
-    }
-  } catch (e) {
-    console.error('[MongoDB Lead Save]', e.message);
-  }
+  await upsertLeadFromSession(session, {
+    analysis: { plan, lead_summary: summary, advisor },
+    status: 'completed',
+    keyFinancialInsights: summary.key_financial_insights,
+    peakInsight: summary.key_financial_insights.join(' | '),
+    conversationSummary: JSON.stringify(summary),
+  });
 
   // Update session to freeform
   sessionStore.updateSession(session.id, {
@@ -395,6 +426,11 @@ async function handleMessage(req, res) {
   }
 
   sessionStore.addMessage(sessionId, 'assistant', response.message);
+  // Persist transcript + latest profile snapshot to MongoDB (no chat flow changes)
+  // NOTE: session.history is capped at 40 messages in-memory.
+  await upsertLeadFromSession(session, {
+    status: session.phase === 'collect' ? 'incomplete' : 'completed',
+  });
   return res.json({ sessionId, ...response });
 }
 

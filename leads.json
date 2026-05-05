@@ -1,5 +1,245 @@
 [
   {
+    "id": "lead_1778004158339_9zpxn",
+    "name": "Vipin Adle",
+    "phone": "9876543211",
+    "email": "",
+    "address": "Kalmeshwar",
+    "monthly_salary": 45000,
+    "goal": "build wealth\\",
+    "risk_profile": "aggressive",
+    "expense_breakdown": {
+      "basic_needs": 15000,
+      "bills_payments": 5000,
+      "personal_spending": 2000,
+      "extra_unexpected": 0
+    },
+    "captured_at": "2026-05-05T18:02:38.339Z",
+    "status": "new",
+    "financial_profile": {
+      "name": "Vipin Adle",
+      "address": "Kalmeshwar",
+      "phone": "9876543211",
+      "monthly_salary": 45000,
+      "expenses": {
+        "basic_needs": 15000,
+        "bills_payments": 5000,
+        "personal_spending": 2000,
+        "extra_unexpected": 0
+      },
+      "risk_profile": "aggressive",
+      "goal": "build wealth\\"
+    },
+    "conversation_summary": "{\"name\":\"Vipin Adle\",\"address\":\"Kalmeshwar\",\"phone\":\"9876543211\",\"monthly_salary\":45000,\"expense_breakdown\":{\"basic_needs\":15000,\"bills_payments\":5000,\"personal_spending\":2000,\"extra_unexpected\":0,\"total\":22000},\"goal\":\"build wealth\\\\\",\"risk_profile\":\"aggressive\",\"key_financial_insights\":[\"Monthly salary: ₹45,000\",\"Total monthly expenses: ₹22,000\",\"Savings rate: 51%\",\"Potential monthly savings buffer: ₹4,600\",\"Recommended monthly SIP: ₹18,400\",\"MF Split: Flexi Cap 30%, Mid Cap 30%, Small Cap 40%\",\"💰 Wealth Goal is 10.2 years away at ₹18,400/month SIP!\",\"🌟 Excellent savings rate of 51%! Channel the surplus into diversified SIPs.\"]}",
+    "peak_insight": "Monthly salary: ₹45,000 | Total monthly expenses: ₹22,000 | Savings rate: 51% | Potential monthly savings buffer: ₹4,600 | Recommended monthly SIP: ₹18,400 | MF Split: Flexi Cap 30%, Mid Cap 30%, Small Cap 40% | 💰 Wealth Goal is 10.2 years away at ₹18,400/month SIP! | 🌟 Excellent savings rate of 51%! Channel the surplus into diversified SIPs.",
+    "chat_transcript": [
+      {
+        "role": "assistant",
+        "content": "👋 Welcome to your PMS wealth assistant! I'm here to help you build a smart investment plan. Let's start — what is your full name?"
+      },
+      {
+        "role": "user",
+        "content": "Vipin Adle"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. Great to meet you! Please share your current address."
+      },
+      {
+        "role": "user",
+        "content": "Kalmeshwar"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. What is your 10-digit mobile number?"
+      },
+      {
+        "role": "user",
+        "content": "9876543211"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. What is your monthly take-home salary (in ₹)?"
+      },
+      {
+        "role": "user",
+        "content": "45k"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it, ₹45,000 salary. Now let's understand your expenses across 4 categories — one by one.\n\n📌 **Category 1 of 4:**\nNow let's understand your expenses. How much do you spend monthly on **Basic Needs** — rent, food, groceries, transport?"
+      },
+      {
+        "role": "user",
+        "content": "15k"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ Basic Needs: ₹15,000/month\n\n📌 **Category 2 of 4:**\nHow much goes to **Bills & Payments** — loan EMIs, insurance premiums, utilities, phone bills?"
+      },
+      {
+        "role": "user",
+        "content": "5k"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ Bills & Payments: ₹5,000/month (Running total: ₹20,000)\n\n📌 **Category 3 of 4:**\nWhat about **Personal Spending** — shopping, eating out, subscriptions, entertainment?"
+      },
+      {
+        "role": "user",
+        "content": "2k"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ Personal Spending: ₹2,000/month (Running total: ₹22,000)\n\n📌 **Category 4 of 4 — last one!**\nLastly on expenses — any **Extra / Unexpected** costs — medical, events, emergencies? (Enter 0 if none)"
+      },
+      {
+        "role": "user",
+        "content": "0"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ All expenses captured!\n\n💰 **Your monthly snapshot:**\nSalary: ₹45,000 | Expenses: ₹22,000 | Surplus: ₹23,000\n\nNow let's set your goals.\n\n🎯 What is your main financial goal? For example: buy a car, Australia trip, dream home, build wealth, retirement, etc."
+      },
+      {
+        "role": "user",
+        "content": "build wealth\\"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. Last one! What's your risk comfort level? Choose: **conservative**, **moderate**, or **aggressive**."
+      },
+      {
+        "role": "user",
+        "content": "aggressive"
+      }
+    ]
+  },
+  {
+    "id": "lead_1778002316784_un81m",
+    "name": "Vipin",
+    "phone": "9874563211",
+    "email": "",
+    "address": "kalmeshwar",
+    "monthly_salary": 50000,
+    "goal": "build wealth",
+    "risk_profile": "aggressive",
+    "expense_breakdown": {
+      "basic_needs": 30000,
+      "bills_payments": 2000,
+      "personal_spending": 2000,
+      "extra_unexpected": 0
+    },
+    "captured_at": "2026-05-05T17:31:56.785Z",
+    "status": "new",
+    "financial_profile": {
+      "name": "Vipin",
+      "address": "kalmeshwar",
+      "phone": "9874563211",
+      "monthly_salary": 50000,
+      "expenses": {
+        "basic_needs": 30000,
+        "bills_payments": 2000,
+        "personal_spending": 2000,
+        "extra_unexpected": 0
+      },
+      "risk_profile": "aggressive",
+      "goal": "build wealth"
+    },
+    "conversation_summary": "{\"name\":\"Vipin\",\"address\":\"kalmeshwar\",\"phone\":\"9874563211\",\"monthly_salary\":50000,\"expense_breakdown\":{\"basic_needs\":30000,\"bills_payments\":2000,\"personal_spending\":2000,\"extra_unexpected\":0,\"total\":34000},\"goal\":\"build wealth\",\"risk_profile\":\"aggressive\",\"key_financial_insights\":[\"Monthly salary: ₹50,000\",\"Total monthly expenses: ₹34,000\",\"Savings rate: 32%\",\"Potential monthly savings buffer: ₹3,200\",\"Recommended monthly SIP: ₹12,800\",\"MF Split: Flexi Cap 30%, Mid Cap 30%, Small Cap 40%\",\"💰 Wealth Goal is 12.2 years away at ₹12,800/month SIP!\",\"🏠 Basic Needs is 60% of income (ideal: ≤50%). Check for cheaper grocery alternatives, optimize rent, or cook at home more. Potential saving: ₹5,000/month.\"]}",
+    "peak_insight": "Monthly salary: ₹50,000 | Total monthly expenses: ₹34,000 | Savings rate: 32% | Potential monthly savings buffer: ₹3,200 | Recommended monthly SIP: ₹12,800 | MF Split: Flexi Cap 30%, Mid Cap 30%, Small Cap 40% | 💰 Wealth Goal is 12.2 years away at ₹12,800/month SIP! | 🏠 Basic Needs is 60% of income (ideal: ≤50%). Check for cheaper grocery alternatives, optimize rent, or cook at home more. Potential saving: ₹5,000/month.",
+    "chat_transcript": [
+      {
+        "role": "assistant",
+        "content": "👋 Welcome to your PMS wealth assistant! I'm here to help you build a smart investment plan. Let's start — what is your full name?"
+      },
+      {
+        "role": "user",
+        "content": "Vipin"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. Great to meet you! Please share your current address."
+      },
+      {
+        "role": "user",
+        "content": "kalmeshwar"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. What is your 10-digit mobile number?"
+      },
+      {
+        "role": "user",
+        "content": "1234567891"
+      },
+      {
+        "role": "assistant",
+        "content": "Please enter a valid 10-digit Indian mobile number starting with 6-9. What is your 10-digit mobile number?"
+      },
+      {
+        "role": "user",
+        "content": "9874563211"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. What is your monthly take-home salary (in ₹)?"
+      },
+      {
+        "role": "user",
+        "content": "50k"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it, ₹50,000 salary. Now let's understand your expenses across 4 categories — one by one.\n\n📌 **Category 1 of 4:**\nNow let's understand your expenses. How much do you spend monthly on **Basic Needs** — rent, food, groceries, transport?"
+      },
+      {
+        "role": "user",
+        "content": "30k"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ Basic Needs: ₹30,000/month\n\n📌 **Category 2 of 4:**\nHow much goes to **Bills & Payments** — loan EMIs, insurance premiums, utilities, phone bills?"
+      },
+      {
+        "role": "user",
+        "content": "2k"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ Bills & Payments: ₹2,000/month (Running total: ₹32,000)\n\n📌 **Category 3 of 4:**\nWhat about **Personal Spending** — shopping, eating out, subscriptions, entertainment?"
+      },
+      {
+        "role": "user",
+        "content": "2k"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ Personal Spending: ₹2,000/month (Running total: ₹34,000)\n\n📌 **Category 4 of 4 — last one!**\nLastly on expenses — any **Extra / Unexpected** costs — medical, events, emergencies? (Enter 0 if none)"
+      },
+      {
+        "role": "user",
+        "content": "0"
+      },
+      {
+        "role": "assistant",
+        "content": "✅ All expenses captured!\n\n💰 **Your monthly snapshot:**\nSalary: ₹50,000 | Expenses: ₹34,000 | Surplus: ₹16,000\n\nNow let's set your goals.\n\n🎯 What is your main financial goal? For example: buy a car, Australia trip, dream home, build wealth, retirement, etc."
+      },
+      {
+        "role": "user",
+        "content": "build wealth"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted. Last one! What's your risk comfort level? Choose: **conservative**, **moderate**, or **aggressive**."
+      },
+      {
+        "role": "user",
+        "content": "aggressive"
+      }
+    ]
+  },
+  {
     "id": "lead_1777981638372_7s0r1",
     "name": "piyush",
     "phone": "9896546789",

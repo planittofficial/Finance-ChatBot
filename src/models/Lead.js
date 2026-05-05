@@ -1,5 +1,20 @@
 const mongoose = require('mongoose');
 
+const ChatTranscriptItemSchema = new mongoose.Schema(
+  {
+    role: {
+      type: String,
+      enum: ['user', 'assistant'],
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 const LeadSchema = new mongoose.Schema({
   userId: {
     type: String,
@@ -28,6 +43,22 @@ const LeadSchema = new mongoose.Schema({
   },
   analysis: {
     type: mongoose.Schema.Types.Mixed,
+  },
+  chatTranscript: {
+    type: [ChatTranscriptItemSchema],
+    default: [],
+  },
+  keyFinancialInsights: {
+    type: [String],
+    default: [],
+  },
+  peakInsight: {
+    type: String,
+    default: '',
+  },
+  conversationSummary: {
+    type: String,
+    default: '',
   },
   expenseBreakdown: {
     basic_needs: { type: Number, default: 0 },
