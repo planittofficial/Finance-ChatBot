@@ -21,11 +21,34 @@ const express     = require('express');
 const cors        = require('cors');
 const helmet      = require('helmet');
 const mongoose    = require('mongoose');
+const cookieParser = require('cookie-parser');
+const path        = require('path');
 const rateLimit   = require('express-rate-limit');
 const sessionStore = require('./src/services/sessionStore');
 const chatRoutes  = require('./src/routes/chat');
 const leadsRoutes = require('./src/routes/leads');
+const adminRoutes = require('./src/routes/admin');
 const { requestLogger, notFoundHandler, globalErrorHandler } = require('./src/middleware/errorHandler');
+const AdminUser = require('./src/models/AdminUser');
+const bcrypt = require('bcryptjs');
+
+// ─── Seed initial admin user (optional) ─────────────────────────────────────
+async function seedInitialAdminUser() {
+  if (!process.env.MONGODB_URI) return;
+  const username = (process.env.ADMIN_USERNAME || '').trim();
+  const password = String(process.env.ADMIN_PASSWORD || '');
+  if (!username || !password) return;
+
+  try {
+    const existing = await AdminUser.findOne({ username }).exec();
+    if (existing) return;
+    const passwordHash = await bcrypt.hash(password, 12);
+    await AdminUser.create({ username, passwordHash, role: 'admin' });
+    console.log(`\x1b[32m[Admin]\x1b[0m Seeded initial admin user: ${username}`);
+  } catch (e) {
+    console.error('\x1b[31m[Admin Seed ERROR]\x1b[0m', e.message);
+  }
+}
 
 // ─── Validate Environment ─────────────────────────────────────────────────────
 const REQUIRED_ENV = ['GROQ_API_KEY'];
@@ -39,7 +62,10 @@ if (missing.length > 0) {
 // ─── Database Connection ──────────────────────────────────────────────────────
 if (process.env.MONGODB_URI) {
   mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('\x1b[32m[Database]\x1b[0m Connected to MongoDB.'))
+  .then(async () => {
+    console.log('\x1b[32m[Database]\x1b[0m Connected to MongoDB.');
+    await seedInitialAdminUser();
+  })
   .catch((err) => console.error('\x1b[31m[Database ERROR]\x1b[0m', err));
 }
 
@@ -88,6 +114,7 @@ app.use('/api', limiter);
 // ─── Body Parsing ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 // ─── Logging ──────────────────────────────────────────────────────────────────
 app.use(requestLogger);
@@ -95,6 +122,12 @@ app.use(requestLogger);
 // ─── API Routes (registered BEFORE static so /api/* is never intercepted by files) ────
 app.use('/api/chat', chatRoutes);
 app.use('/api/leads', leadsRoutes);
+app.use('/api/admin', adminRoutes);
+
+// ─── Admin Panel ────────────────────────────────────────────────────────────
+app.get('/admin', (_req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
 
 // ─── Static Frontend (test harness) ──────────────────────────────────────────
 // Serves index.html + style.css from the project root
@@ -152,6 +185,22 @@ const server = app.listen(PORT, () => {
   console.log(`  ➜  Open in browser: http://localhost:${PORT}`);
   console.log('\x1b[0m');
 });
+
+// Handle listen errors (prevents unhandled 'error' event crashes)
+server.on('error', (err) => {
+  if (err && err.code === 'EADDRINUSE') {
+    console.error(`\x1b[31m[STARTUP ERROR]\x1b[0m Port ${PORT} is already in use.`);
+    console.error('Close the other process using this port, or change PORT in .env and restart.');
+    process.exit(1);
+  }
+  console.error('\x1b[31m[SERVER ERROR]\x1b[0m', err);
+  process.exit(1);
+});
+
+// If the process starts with an already-connected mongoose (rare), seed best-effort.
+if (mongoose.connection.readyState === 1) {
+  seedInitialAdminUser();
+}
 
 // ─── Graceful Shutdown ────────────────────────────────────────────────────────
 function gracefulShutdown(signal) {

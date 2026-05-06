@@ -7,52 +7,6 @@ const Lead = require('../models/Lead');
 const leadsController = require('./leadsController');
 const { CHAT_PROMPT, GOAL_MOTIVATION_PROMPT, buildProfileContext } = require('../prompts/system');
 
-function hasMongo() {
-  return !!process.env.MONGODB_URI;
-}
-
-function buildLeadSetFromSession(session) {
-  const profile = session?.profile || {};
-  const expenses = profile.expenses || {};
-
-  const set = {
-    userId: session?.userId || null,
-    sessionId: session?.id,
-    name: profile.name || session?.name || undefined,
-    phone: profile.phone || undefined,
-    address: profile.address || undefined,
-    profile: profile,
-    monthlySalary: profile.monthly_salary ?? null,
-    goal: profile.goal ?? '',
-    riskProfile: profile.risk_profile ?? 'moderate',
-    expenseBreakdown: {
-      basic_needs: expenses.basic_needs ?? null,
-      bills_payments: expenses.bills_payments ?? null,
-      personal_spending: expenses.personal_spending ?? null,
-      extra_unexpected: expenses.extra_unexpected ?? null,
-    },
-    chatTranscript: Array.isArray(session?.history) ? session.history : [],
-    updatedAt: new Date(),
-  };
-
-  if (session?.analysis) set.analysis = session.analysis;
-  return set;
-}
-
-async function upsertLeadFromSession(session, extraSet = {}) {
-  if (!hasMongo()) return;
-  try {
-    const baseSet = buildLeadSetFromSession(session);
-    await Lead.updateOne(
-      { sessionId: session.id },
-      { $set: { ...baseSet, ...extraSet } },
-      { upsert: true }
-    );
-  } catch (e) {
-    console.error('[MongoDB Lead Upsert]', e.message);
-  }
-}
-
 // ─── Collection Steps ────────────────────────────────────────────────────────
 const STEPS = [
   { key: 'name', question: '👋 Welcome to your PMS wealth assistant! I\'m here to help you build a smart investment plan. Let\'s start — what is your full name?' },
@@ -321,19 +275,39 @@ async function handleCollectPhase(session, userMessage) {
     phone: session.profile.phone,
     address: session.profile.address,
     financial_profile: session.profile,
-    conversation_summary: JSON.stringify(summary),
     peak_insight: summary.key_financial_insights.join(' | '),
-    chat_transcript: session.history,
   });
 
   // Save lead to MongoDB
-  await upsertLeadFromSession(session, {
-    analysis: { plan, lead_summary: summary, advisor },
-    status: 'completed',
-    keyFinancialInsights: summary.key_financial_insights,
-    peakInsight: summary.key_financial_insights.join(' | '),
-    conversationSummary: JSON.stringify(summary),
-  });
+  try {
+    if (process.env.MONGODB_URI) {
+      await Lead.updateOne(
+        { sessionId: session.id },
+        {
+          $set: {
+            userId: session.userId,
+            name: session.profile.name,
+            phone: session.profile.phone,
+            address: session.profile.address,
+            sessionId: session.id,
+            monthlySalary: session.profile.monthly_salary,
+            keyFinancialInsights: summary.key_financial_insights,
+            peakInsight: summary.key_financial_insights.join(' | '),
+            conversationCompletedAt: new Date(),
+            status: 'completed',
+            updatedAt: new Date(),
+          },
+          $setOnInsert: {
+            createdAt: new Date(),
+            conversationStartedAt: session.createdAt ? new Date(session.createdAt) : new Date(),
+          },
+        },
+        { upsert: true }
+      );
+    }
+  } catch (e) {
+    console.error('[MongoDB Lead Save]', e.message);
+  }
 
   // Update session to freeform
   sessionStore.updateSession(session.id, {
@@ -426,11 +400,6 @@ async function handleMessage(req, res) {
   }
 
   sessionStore.addMessage(sessionId, 'assistant', response.message);
-  // Persist transcript + latest profile snapshot to MongoDB (no chat flow changes)
-  // NOTE: session.history is capped at 40 messages in-memory.
-  await upsertLeadFromSession(session, {
-    status: session.phase === 'collect' ? 'incomplete' : 'completed',
-  });
   return res.json({ sessionId, ...response });
 }
 

@@ -1,5 +1,75 @@
 [
   {
+    "id": "lead_1778041898873_wuqso",
+    "name": "Vipin 3",
+    "phone": "8976453211",
+    "email": "",
+    "address": "Kalameshwar",
+    "monthly_salary": 28000,
+    "goal": "buy a phone",
+    "risk_profile": "aggressive",
+    "expense_breakdown": {
+      "basic_needs": 16000,
+      "bills_payments": 600,
+      "personal_spending": 1000,
+      "extra_unexpected": 0
+    },
+    "captured_at": "2026-05-06T04:31:38.873Z",
+    "status": "new",
+    "financial_profile": {
+      "name": "Vipin 3",
+      "address": "Kalameshwar",
+      "phone": "8976453211",
+      "monthly_salary": 28000,
+      "expenses": {
+        "basic_needs": 16000,
+        "bills_payments": 600,
+        "personal_spending": 1000,
+        "extra_unexpected": 0
+      },
+      "risk_profile": "aggressive",
+      "goal": "buy a phone"
+    },
+    "conversation_summary": "",
+    "peak_insight": "Monthly salary: ₹28,000 | Total monthly expenses: ₹17,600 | Savings rate: 37% | Potential monthly savings buffer: ₹2,080 | Recommended monthly SIP: ₹8,320 | MF Split: Flexi Cap 30%, Mid Cap 30%, Small Cap 40% | 📱 New Phone is 0.8 years away at ₹8,320/month SIP! | 🏠 Basic Needs is 57% of income (ideal: ≤50%). Check for cheaper grocery alternatives, optimize rent, or cook at home more. Potential saving: ₹2,000/month.",
+    "chat_transcript": []
+  },
+  {
+    "id": "lead_1778005071830_eb5e5",
+    "name": "Vipin 2",
+    "phone": "8976543212",
+    "email": "",
+    "address": "kalmeshwar",
+    "monthly_salary": 28000,
+    "goal": "build wealth",
+    "risk_profile": "moderate",
+    "expense_breakdown": {
+      "basic_needs": 16000,
+      "bills_payments": 2000,
+      "personal_spending": 1000,
+      "extra_unexpected": 0
+    },
+    "captured_at": "2026-05-05T18:17:51.830Z",
+    "status": "new",
+    "financial_profile": {
+      "name": "Vipin 2",
+      "address": "kalmeshwar",
+      "phone": "8976543212",
+      "monthly_salary": 28000,
+      "expenses": {
+        "basic_needs": 16000,
+        "bills_payments": 2000,
+        "personal_spending": 1000,
+        "extra_unexpected": 0
+      },
+      "risk_profile": "moderate",
+      "goal": "build wealth"
+    },
+    "conversation_summary": "",
+    "peak_insight": "Monthly salary: ₹28,000 | Total monthly expenses: ₹19,000 | Savings rate: 32% | Potential monthly savings buffer: ₹1,800 | Recommended monthly SIP: ₹7,200 | MF Split: Flexi Cap 50%, Mid Cap 30%, Small Cap 20% | 💰 Wealth Goal is 16.3 years away at ₹7,200/month SIP! | 🏠 Basic Needs is 57% of income (ideal: ≤50%). Check for cheaper grocery alternatives, optimize rent, or cook at home more. Potential saving: ₹2,000/month.",
+    "chat_transcript": []
+  },
+  {
     "id": "lead_1778004158339_9zpxn",
     "name": "Vipin Adle",
     "phone": "9876543211",
