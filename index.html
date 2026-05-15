@@ -470,6 +470,43 @@
 	      return wrap;
 	    }
 
+	    // Post-analysis lead capture card (optional)
+	    function buildLeadCaptureCard(leadCapture) {
+	      const prompt = leadCapture?.prompt || 'Want to save your plan?';
+	      const suggestions = Array.isArray(leadCapture?.suggestions) ? leadCapture.suggestions : [];
+
+	      const wrap = document.createElement('div');
+	      wrap.className = 'msg bot';
+	      wrap.style.cssText = 'max-width:100%;width:100%';
+
+	      const card = document.createElement('div');
+	      card.className = 'snapshot-card';
+
+	      const row = document.createElement('div');
+	      row.className = 'suggestion-row compact';
+
+	      suggestions.slice(0, 3).forEach((label) => {
+	        const chip = document.createElement('button');
+	        chip.className = 'suggestion-chip';
+	        chip.type = 'button';
+	        chip.textContent = label;
+	        chip.onclick = () => sendMessage(label, label);
+	        row.appendChild(chip);
+	      });
+
+	      card.innerHTML = `
+	        <div class="snapshot-header">
+	          <div class="snapshot-meta">Next step</div>
+	          <div class="snapshot-badge" style="background:rgba(34,197,94,0.10);color:#22c55e;border:1px solid rgba(34,197,94,0.18)">SAVE</div>
+	        </div>
+	        <div class="snapshot-insight">${parseMarkdown(escapeHtml(String(prompt)))}</div>
+	      `;
+	      if (suggestions.length) card.appendChild(row);
+
+	      wrap.appendChild(card);
+	      return wrap;
+	    }
+
     async function maybeShowAdvisorCard(data) {
       if (!data || !data.show_advisor_card) return;
       try {
