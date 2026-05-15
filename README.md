@@ -53,7 +53,7 @@ npm start          # production
 ```
 
 Server starts at: `http://localhost:3000`
-Frontend harness: `http://localhost:3000` (opens index.html)
+Frontend harness: `http://localhost:3000` (serves `index.html` from the same Express app)
 
 ### 3. Run API smoke tests
 
@@ -67,6 +67,10 @@ npm run test:api
 ## API Reference
 
 All endpoints are under `/api/chat`.
+
+If you host the frontend separately from the backend (different domain/port), pass an explicit API base:
+
+- `?apiBase=http://localhost:3000/api/chat`
 
 ### `POST /api/chat/start`
 Creates a new session and returns the first bot question.

@@ -122,7 +122,22 @@
     //  No Groq key needed here  key lives in backend .env
     // 
 
-    const API_BASE = '/api/chat';
+	    // API base can be overridden when the UI is hosted separately from the backend.
+	    // Examples:
+	    //   http://localhost:3000                         -> default /api/chat (same origin)
+	    //   http://localhost/  (frontend) + backend :3000 -> ?apiBase=http://localhost:3000/api/chat
+	    // Also supported:
+	    //   window.FINANCEAI_API_BASE = 'https://api.example.com/api/chat'
+	    //   <meta name="financeai-api-base" content="https://api.example.com/api/chat">
+	    function normalizeApiBase(v) {
+	      if (!v) return v;
+	      const s = String(v).trim();
+	      return s.endsWith('/') ? s.slice(0, -1) : s;
+	    }
+
+	    const _apiMeta = document.querySelector('meta[name="financeai-api-base"]')?.getAttribute('content');
+	    const _apiFromQuery = new URLSearchParams(window.location.search).get('apiBase');
+	    const API_BASE = normalizeApiBase(_apiFromQuery || window.FINANCEAI_API_BASE || _apiMeta || '/api/chat');
 
     // Embed mode (used when shown inside Planitt via iframe)
     (function initEmbedMode() {
@@ -148,30 +163,46 @@
     let analysisRendered = false; // true after analysis cards are shown once
 
     //  API Client 
-    async function apiPost(path, body = {}) {
-      const res = await fetch(`${API_BASE}${path}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+	    async function apiPost(path, body = {}) {
+	      const res = await fetch(`${API_BASE}${path}`, {
+	        method: 'POST',
+	        headers: { 'Content-Type': 'application/json' },
+	        body: JSON.stringify(body),
+	      });
 
-      // Guard against non-JSON responses (e.g. from a Python dev server on wrong port)
-      const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) {
-        throw new Error(`Server at port ${location.port || '80'} returned non-JSON (${res.status}). Make sure you're on the correct URL/port for this deployment.`);
-      }
+	      // Guard against non-JSON responses (e.g. from a Python dev server on wrong port)
+	      const contentType = res.headers.get('content-type') || '';
+	      if (!contentType.includes('application/json')) {
+	        let snippet = '';
+	        try { snippet = (await res.text()).slice(0, 180).replace(/\s+/g, ' ').trim(); } catch (_) {}
+	        const origin = `${location.protocol}//${location.host || '(no-host)'}`;
+	        const hint =
+	          `Non-JSON response (${res.status}) from ${origin}${API_BASE}${path}. ` +
+	          `If your backend runs on a different host/port, open the UI from the backend origin or set ?apiBase=http://HOST:PORT/api/chat.`;
+	        throw new Error(snippet ? `${hint} Response: ${snippet}` : hint);
+	      }
 
-      const data = await res.json();
-      if (!res.ok) throw Object.assign(new Error(data.error || 'API error'), { status: res.status, code: data.code });
-      return data;
-    }
+	      const data = await res.json();
+	      if (!res.ok) throw Object.assign(new Error(data.error || 'API error'), { status: res.status, code: data.code });
+	      return data;
+	    }
 
-    async function apiGet(path) {
-      const res = await fetch(`${API_BASE}${path}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'API error');
-      return data;
-    }
+	    async function apiGet(path) {
+	      const res = await fetch(`${API_BASE}${path}`);
+	      const contentType = res.headers.get('content-type') || '';
+	      if (!contentType.includes('application/json')) {
+	        let snippet = '';
+	        try { snippet = (await res.text()).slice(0, 180).replace(/\s+/g, ' ').trim(); } catch (_) {}
+	        const origin = `${location.protocol}//${location.host || '(no-host)'}`;
+	        const hint =
+	          `Non-JSON response (${res.status}) from ${origin}${API_BASE}${path}. ` +
+	          `If your backend runs on a different host/port, open the UI from the backend origin or set ?apiBase=http://HOST:PORT/api/chat.`;
+	        throw new Error(snippet ? `${hint} Response: ${snippet}` : hint);
+	      }
+	      const data = await res.json();
+	      if (!res.ok) throw new Error(data.error || 'API error');
+	      return data;
+	    }
 
     //  Server Status Badge 
     function setServerStatus(state) {
@@ -1225,10 +1256,19 @@
       <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:#f87171;margin-bottom:0.5rem">
         Cannot reach the backend server
       </div>
-      <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1rem">
-        The UI could not start a chat session.<br/>
-        <strong style="color:var(--gold-400)">${origin}${API_BASE}/start</strong></div>
-      <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">If this keeps happening, open DevTools  Network and check the status/response of <strong>/api/chat/start</strong>, then check your server logs.</div>${errMsg ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem">Error: ${escapeHtml(errMsg)}</div>` : ''}
+	      <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1rem">
+	        The UI could not start a chat session.<br/>
+	        <div style="margin-top:0.35rem">
+	          API base: <strong style="color:var(--gold-400)">${escapeHtml(API_BASE)}</strong>
+	        </div>
+	        <div style="margin-top:0.35rem">
+	          Endpoint: <strong style="color:var(--gold-400)">${origin}${API_BASE}/start</strong>
+	        </div>
+	      </div>
+	      <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">
+	        If your backend runs on a different host/port, open the UI from the backend origin or set <strong>?apiBase=http://HOST:PORT/api/chat</strong>.
+	      </div>
+	      <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">If this keeps happening, open DevTools → Network and check the status/response of <strong>${escapeHtml(API_BASE)}/start</strong>, then check your server logs.</div>${errMsg ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem">Error: ${escapeHtml(errMsg)}</div>` : ''}
       <button onclick="initSession()" class="btn-gold" style="width:100%;padding:0.75rem">
          Retry Connection
       </button>
