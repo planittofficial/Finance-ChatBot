@@ -404,7 +404,7 @@
     }
 
     //  Enrichment UI (insight + visual + suggested questions) 
-    function buildSnapshotCard(data) {
+	    function buildSnapshotCard(data) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
       wrap.style.cssText = 'max-width:100%;width:100%';
@@ -444,9 +444,31 @@
         card.appendChild(row);
       }
 
-      wrap.appendChild(card);
-      return wrap;
-    }
+	      wrap.appendChild(card);
+	      return wrap;
+	    }
+
+	    // Milestone / Hook card (short micro-insight during collection)
+	    function buildMilestoneCard(text) {
+	      const wrap = document.createElement('div');
+	      wrap.className = 'msg bot';
+	      wrap.style.cssText = 'max-width:100%;width:100%';
+
+	      const card = document.createElement('div');
+	      card.className = 'snapshot-card';
+	      card.style.borderColor = 'rgba(245,197,24,0.25)';
+
+	      card.innerHTML = `
+	        <div class="snapshot-header">
+	          <div class="snapshot-meta">Milestone</div>
+	          <div class="snapshot-badge" style="background:rgba(245,197,24,0.12);color:var(--gold-400);border:1px solid rgba(245,197,24,0.25)">INSIGHT</div>
+	        </div>
+		        <div class="snapshot-insight">${parseMarkdown(escapeHtml(String(text || '')))}</div>
+	      `;
+
+	      wrap.appendChild(card);
+	      return wrap;
+	    }
 
     async function maybeShowAdvisorCard(data) {
       if (!data || !data.show_advisor_card) return;
