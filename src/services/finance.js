@@ -408,9 +408,24 @@ function validateProfileField(field, value) {
   return { valid: true };
 }
 
+// Rough India-centric income percentile estimate for messaging hooks.
+// Heuristic only (not authoritative statistics).
+function getIncomePercentile(monthlySalary) {
+  const s = Number(monthlySalary);
+  if (!Number.isFinite(s) || s <= 0) return 0;
+  if (s <= 15000) return 35;
+  if (s <= 25000) return 55;
+  if (s <= 40000) return 70;
+  if (s <= 60000) return 82;
+  if (s <= 100000) return 92;
+  if (s <= 200000) return 97;
+  return 99;
+}
+
 module.exports = {
   formatINR,
   formatCrLakh,
+  getIncomePercentile,
   calculateFinancialPlan,
   calculateGoalProjection,
   calculateCategoryOptimization,

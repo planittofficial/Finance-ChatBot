@@ -106,6 +106,13 @@ const app  = express();
 const PORT = parseInt(process.env.PORT) || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Trust reverse proxy headers in production hosting (Render, etc.).
+// Required for correct client IP detection and to avoid express-rate-limit error:
+// ERR_ERL_UNEXPECTED_X_FORWARDED_FOR
+if (!isDev || String(process.env.TRUST_PROXY || '').toLowerCase() === 'true') {
+  app.set('trust proxy', 1);
+}
+
 // ─── Security Middleware ──────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },

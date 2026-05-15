@@ -242,6 +242,24 @@ function buildProfileContext(profile, plan) {
   return lines.length > 0 ? lines.join('\n') : 'Profile not yet collected.';
 }
 
+function buildPartialProfileContext(profile) {
+  if (!profile) return 'No profile data yet.';
+
+  const lines = [];
+  if (profile.name)           lines.push(`Name: ${profile.name}`);
+  if (profile.goal)           lines.push(`Primary Goal: ${profile.goal}`);
+  if (profile.age_bracket)    lines.push(`Age Bracket: ${profile.age_bracket}`);
+  if (profile.monthly_salary) lines.push(`Monthly Salary: â‚¹${Number(profile.monthly_salary).toLocaleString('en-IN')}`);
+
+  const exp = profile.expenses || {};
+  const total = (exp.basic_needs || 0) + (exp.bills_payments || 0) + (exp.personal_spending || 0) + (exp.extra_unexpected || 0);
+  if (total > 0) lines.push(`Monthly Expenses (so far): â‚¹${Number(total).toLocaleString('en-IN')}`);
+
+  if (profile.risk_profile) lines.push(`Risk Profile: ${profile.risk_profile}`);
+
+  return lines.length ? lines.join('\n') : 'Profile not yet collected.';
+}
+
 // ─── Helper: Build analysis user message ─────────────────────────────────────
 function buildAnalysisUserMessage(profile) {
   const expenses = profile.expenses || {};
@@ -273,5 +291,6 @@ module.exports = {
   OFFTOPIC_CLASSIFIER,
   GOAL_MOTIVATION_PROMPT,
   buildProfileContext,
+  buildPartialProfileContext,
   buildAnalysisUserMessage,
 };
