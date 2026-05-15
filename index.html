@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinanceAI â€” Personalized Wealth Intelligence</title>
+  <title>FinanceAI  Personalized Wealth Intelligence</title>
   <meta name="description"
     content="Discover your personalized financial projections powered by AI. See exactly how much you could grow your wealth and connect with certified financial advisors." />
   <link rel="stylesheet" href="style.css" />
@@ -31,7 +31,16 @@
     <!-- HEADER -->
     <header class="header">
       <div class="logo">
-        <div class="logo-icon" aria-hidden="true">â‚¹</div>
+        <div class="logo-icon" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M12 2l1.2 3.9a1 1 0 0 0 .7.7L18 8l-4.1 1.4a1 1 0 0 0-.7.7L12 14l-1.2-3.9a1 1 0 0 0-.7-.7L6 8l4.1-1.4a1 1 0 0 0 .7-.7L12 2Z"
+              fill="currentColor" />
+            <path
+              d="M6.5 13.5l.8 2.6a1 1 0 0 0 .7.7l2.6.8-2.6.8a1 1 0 0 0-.7.7l-.8 2.6-.8-2.6a1 1 0 0 0-.7-.7l-2.6-.8 2.6-.8a1 1 0 0 0 .7-.7l.8-2.6Z"
+              fill="currentColor" opacity="0.8" />
+          </svg>
+        </div>
         <div>
           <div class="logo-text">FinanceAI</div>
           <div class="logo-sub">Wealth Intelligence</div>
@@ -40,16 +49,24 @@
       <div class="header-actions">
         <div id="server-status" class="live-badge" title="Backend server status">
           <span class="live-dot" id="status-dot"></span>
-          <span id="status-text">Connectingâ€¦</span>
+          <span id="status-text">Connecting</span>
         </div>
-        <button id="theme-toggle" class="theme-btn" title="Toggle theme">â˜€ï¸</button>
-        <button id="restart-btn" class="restart-btn">â†º Restart</button>
+        <button id="theme-toggle" class="theme-btn" title="Toggle theme" aria-label="Toggle theme">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"
+              stroke="currentColor" stroke-width="2" />
+            <path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l-1.4-1.4M20.4 20.4 19 19M19 5l1.4-1.4M3.6 20.4 5 19"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+        <button id="restart-btn" class="restart-btn"> Restart</button>
       </div>
     </header>
 
     <main class="main">
 
-      <!-- CHAT WINDOW (shown immediately â€” no API gate, key is in backend .env) -->
+      <!-- CHAT WINDOW (shown immediately  no API gate, key is in backend .env) -->
       <section id="chat-window" class="active" aria-label="Finance AI Chat" aria-live="polite">
 
         <div class="progress-header" id="progress-header">
@@ -64,7 +81,16 @@
 
         <div class="messages" id="messages" role="log">
           <div class="typing-indicator" id="typing-indicator">
-            <div class="bot-avatar">âœ¦</div>
+            <div class="bot-avatar" aria-hidden="true">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M8 10h8M9 14h6M12 3v2"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path
+                  d="M7 6h10a4 4 0 0 1 4 4v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3a4 4 0 0 1 4-4Z"
+                  stroke="currentColor" stroke-width="2" />
+              </svg>
+            </div>
             <div class="typing-dots"><span></span><span></span><span></span></div>
           </div>
         </div>
@@ -73,7 +99,13 @@
           <div class="input-row">
             <input id="chat-input" class="chat-input" type="text" placeholder="Type your answer..."
               autocomplete="off" />
-            <button id="send-btn" class="send-btn" disabled>âž¤</button>
+            <button id="send-btn" class="send-btn" disabled aria-label="Send message">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M12 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" />
+              </svg>
+            </button>
           </div>
           <div id="chips-container" class="chips-row"></div>
           <p class="input-hint" id="input-hint"></p>
@@ -84,15 +116,30 @@
   </div>
 
   <script>
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  FinanceAI â€” Frontend Test Harness
+    // 
+    //  FinanceAI  Frontend Test Harness
     //  Communicates exclusively with the backend API at /api/chat
-    //  No Groq key needed here â€” key lives in backend .env
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    //  No Groq key needed here  key lives in backend .env
+    // 
 
     const API_BASE = '/api/chat';
 
-    // â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Embed mode (used when shown inside Planitt via iframe)
+    (function initEmbedMode() {
+      const params = new URLSearchParams(window.location.search);
+      const embed = params.get('embed');
+      const isEmbedded = embed === 'planitt' || (window.self !== window.top);
+      if (isEmbedded) document.documentElement.setAttribute('data-embed', 'true');
+
+      // In embed mode we follow the host app's dark theme by default.
+      // You can override via `?theme=light|dark`.
+      const explicitTheme = params.get('theme');
+      if (explicitTheme === 'light' || explicitTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', explicitTheme);
+      }
+    })();
+
+    //  State 
     let sessionId = null;
     let currentPhase = 'collect';
     let currentStep = null;    // step metadata from backend
@@ -100,7 +147,7 @@
     let isWaiting = false;   // true while awaiting bot response
     let analysisRendered = false; // true after analysis cards are shown once
 
-    // â”€â”€â”€ API Client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  API Client 
     async function apiPost(path, body = {}) {
       const res = await fetch(`${API_BASE}${path}`, {
         method: 'POST',
@@ -126,14 +173,14 @@
       return data;
     }
 
-    // â”€â”€â”€ Server Status Badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Server Status Badge 
     function setServerStatus(state) {
       // state: 'connecting' | 'connected' | 'error'
       const dot = document.getElementById('status-dot');
       const text = document.getElementById('status-text');
       if (!dot || !text) return;
       const map = {
-        connecting: { color: '#f59e0b', label: 'Connectingâ€¦' },
+        connecting: { color: '#f59e0b', label: 'Connecting' },
         connected: { color: '#22c55e', label: 'Connected' },
         error: { color: '#ef4444', label: 'Server offline' },
       };
@@ -150,9 +197,9 @@
     }
 
     function formatCrLakh(n) {
-      if (n >= 1e7) return `â‚¹${(n / 1e7).toFixed(2)} Cr`;
-      if (n >= 1e5) return `â‚¹${(n / 1e5).toFixed(1)}L`;
-      return `â‚¹${formatINR(n)}`;
+      if (n >= 1e7) return `${(n / 1e7).toFixed(2)} Cr`;
+      if (n >= 1e5) return `${(n / 1e5).toFixed(1)}L`;
+      return `${formatINR(n)}`;
     }
 
     function parseMarkdown(text) {
@@ -173,7 +220,7 @@
       if (msgs) msgs.scrollTop = msgs.scrollHeight;
     }
 
-    // â”€â”€â”€ Progress Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Progress Bar 
     function setProgress(pct, label) {
       document.getElementById('progress-fill').style.width = pct + '%';
       document.getElementById('progress-pct').textContent = pct + '%';
@@ -181,19 +228,26 @@
       if (label) document.getElementById('progress-label-text').textContent = label;
     }
 
-    // â”€â”€â”€ Typing Indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Typing Indicator 
     function showTyping(show) {
       document.getElementById('typing-indicator').classList.toggle('active', show);
       scrollToBottom();
     }
 
-    // â”€â”€â”€ Add Messages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Add Messages 
     function addBotMessage(html) {
       const msgs = document.getElementById('messages');
       const typing = document.getElementById('typing-indicator');
       const div = document.createElement('div');
       div.className = 'msg bot';
-      div.innerHTML = `<div class="bot-avatar">âœ¦</div><div class="bubble">${parseMarkdown(html)}</div>`;
+      div.innerHTML = `
+        <div class="bot-avatar" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M8 10h8M9 14h6M12 3v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            <path d="M7 6h10a4 4 0 0 1 4 4v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="2" />
+          </svg>
+        </div>
+        <div class="bubble">${parseMarkdown(html)}</div>`;
       msgs.insertBefore(div, typing);
       showTyping(false);
       scrollToBottom();
@@ -229,7 +283,7 @@
 
       card.innerHTML = `
     <div style="font-family:'Outfit',sans-serif;font-weight:700;margin-bottom:0.8rem;font-size:0.95rem">
-      ðŸ“ˆ Expected Growth Summary
+       Expected Growth Summary
     </div>
     <div class="growth-chart-wrap">
       <canvas id="${chartId}" aria-label="Expected growth line graph" role="img" style="max-height:250px"></canvas>
@@ -307,7 +361,7 @@
                 ticks: {
                   color: textColor,
                   font: { size: 10 },
-                  callback: v => v >= 1e7 ? `â‚¹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `â‚¹${(v / 1e5).toFixed(0)}L` : `â‚¹${formatINR(v)}`
+                  callback: v => v >= 1e7 ? `${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `${(v / 1e5).toFixed(0)}L` : `${formatINR(v)}`
                 }
               }
             }
@@ -318,7 +372,7 @@
       return wrap;
     }
 
-    // â”€â”€â”€ Enrichment UI (insight + visual + suggested questions) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Enrichment UI (insight + visual + suggested questions) 
     function buildSnapshotCard(data) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -381,7 +435,7 @@
       }
     }
 
-    // â”€â”€â”€ Chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Chips 
     function showChips(choices, displayMap) {
       const container = document.getElementById('chips-container');
       const input = document.getElementById('chat-input');
@@ -410,7 +464,7 @@
       document.getElementById('input-hint').textContent = text || '';
     }
 
-    // â”€â”€â”€ Apply step metadata from API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Apply step metadata from API 
     function applyStep(step) {
       if (!step) return;
       currentStep = step;
@@ -467,7 +521,7 @@
       }
     }
 
-    // â”€â”€â”€ Send Message to Backend â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Send Message to Backend 
     async function sendMessage(raw, displayLabel) {
       if (isWaiting) return;
       const text = (raw || document.getElementById('chat-input').value).trim();
@@ -488,18 +542,18 @@
       } catch (err) {
         showTyping(false);
         if (err.code === 'SESSION_EXPIRED') {
-          addBotMessage("âš ï¸ Your session expired. Starting a fresh one...");
+          addBotMessage(" Your session expired. Starting a fresh one...");
           await sleep(1000);
           await initSession();
         } else {
-          addBotMessage(`âš ï¸ ${err.message || 'Something went wrong. Please try again.'}`);
+          addBotMessage(` ${err.message || 'Something went wrong. Please try again.'}`);
         }
         isWaiting = false;
         document.getElementById('send-btn').disabled = false;
       }
     }
 
-    // â”€â”€â”€ Handle API Response â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Handle API Response 
     function handleResponse(data) {
       showTyping(false);
       currentPhase = data.phase;
@@ -551,7 +605,7 @@
         return;
       }
 
-      // Analysis arrived â€” render full results UI (only once)
+      // Analysis arrived  render full results UI (only once)
       if (data.analysis && !analysisRendered) {
         analysisRendered = true;
         document.getElementById('progress-header').style.display = 'none';
@@ -560,7 +614,7 @@
         return;
       }
 
-      // Freeform / advisor phase â€” just enable input
+      // Freeform / advisor phase  just enable input
       if (['freeform', 'hook', 'advisor'].includes(data.phase)) {
         const input = document.getElementById('chat-input');
         input.placeholder = 'Ask me anything about your finances...';
@@ -569,7 +623,7 @@
       }
     }
 
-    // â”€â”€â”€ Render Analysis Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Render Analysis Results 
     function renderAnalysis(a, profile) {
       const plan = a.plan || a;
       const p = plan.projections || a.projections || {};
@@ -594,16 +648,16 @@
       // 4. Projection summary
       setTimeout(() => {
         const projLines = (plan.projections || []).map(pr =>
-          `â€¢ **${pr.years}Y**: â‚¹${formatINR(pr.monthly_investment)}/mo â†’ ${pr.expected_value_formatted || formatCrLakh(pr.expected_value)}`
+          ` **${pr.years}Y**: ${formatINR(pr.monthly_investment)}/mo  ${pr.expected_value_formatted || formatCrLakh(pr.expected_value)}`
         ).join('\n');
         addBotMessage(
-          `ðŸ“ˆ **Investment Projections**\n${projLines}\n\nFor fund selection, connect with your advisor.`
+          ` **Investment Projections**\n${projLines}\n\nFor fund selection, connect with your advisor.`
         );
         setTimeout(() => addElement(buildHookCTA(a, profile)), 300);
       }, 1000);
     }
 
-    // â”€â”€â”€ Expense Breakdown Doughnut â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Expense Breakdown Doughnut 
     function buildExpenseCard(expBreak, totals, isOptimizedView) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -626,11 +680,11 @@
 
       const legendHTML = cats.map(c => {
         const pct = safeSalary > 0 ? Math.round((c.amount / safeSalary) * 100) : 0;
-        return `<div class="expense-legend-item"><span class="legend-dot" style="background:${c.color}"></span>${c.label} (${pct}%)<span class="legend-value">â‚¹${formatINR(c.amount || 0)}</span></div>`;
+        return `<div class="expense-legend-item"><span class="legend-dot" style="background:${c.color}"></span>${c.label} (${pct}%)<span class="legend-value">${formatINR(c.amount || 0)}</span></div>`;
       }).join('');
 
       wrap.innerHTML = `<div class="expense-card">
-    <div class="expense-card-title">ðŸ“Š ${isOptimizedView ? 'Monthly Expense Breakdown (Post-Optimization)' : 'Monthly Expense Breakdown'}</div>
+    <div class="expense-card-title"> ${isOptimizedView ? 'Monthly Expense Breakdown (Post-Optimization)' : 'Monthly Expense Breakdown'}</div>
     <div class="expense-chart-row">
       <div class="expense-doughnut-wrap"><canvas id="${chartId}"></canvas></div>
       <div class="expense-legend">${legendHTML}</div>
@@ -646,13 +700,13 @@
             labels: cats.map(c => c.label),
             datasets: [{ data: cats.map(c => c.amount || 0), backgroundColor: cats.map(c => c.color), borderWidth: 0 }]
           },
-          options: { responsive: true, maintainAspectRatio: true, cutout: '62%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` â‚¹${formatINR(ctx.raw)}` } } } }
+          options: { responsive: true, maintainAspectRatio: true, cutout: '62%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${formatINR(ctx.raw)}` } } } }
         });
       });
       return wrap;
     }
 
-    // â”€â”€â”€ MF Allocation Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  MF Allocation Card 
     function buildMFCard(fundMix, fundAmounts, totals) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -661,7 +715,7 @@
       const mc = Math.round((fundMix.mid_cap || 0) * 100);
       const sc = Math.round((fundMix.small_cap || 0) * 100);
       wrap.innerHTML = `<div class="mf-card">
-    <div class="mf-title">ðŸ’¼ Recommended Mutual Fund Split (SIP: â‚¹${formatINR(totals.recommended_sip_for_projection || totals.investable_amount || 0)}/mo)</div>
+    <div class="mf-title"> Recommended Mutual Fund Split (SIP: ${formatINR(totals.recommended_sip_for_projection || totals.investable_amount || 0)}/mo)</div>
     <div class="mf-bar-wrap">
       <div class="mf-bar-seg" style="width:${fc}%;background:#f5c518">${fc}%</div>
       <div class="mf-bar-seg" style="width:${mc}%;background:#60a5fa">${mc}%</div>
@@ -670,17 +724,17 @@
     <div class="mf-details">
       <div class="mf-fund-box" style="border-color:rgba(245,197,24,0.3)">
         <div class="mf-fund-name" style="color:#f5c518">Flexi Cap</div>
-        <div class="mf-fund-amount" style="color:#f5c518">â‚¹${formatINR(fundAmounts.flexi_cap || 0)}</div>
+        <div class="mf-fund-amount" style="color:#f5c518">${formatINR(fundAmounts.flexi_cap || 0)}</div>
         <div class="mf-fund-return">~12% p.a.</div>
       </div>
       <div class="mf-fund-box" style="border-color:rgba(96,165,250,0.3)">
         <div class="mf-fund-name" style="color:#60a5fa">Mid Cap</div>
-        <div class="mf-fund-amount" style="color:#60a5fa">â‚¹${formatINR(fundAmounts.mid_cap || 0)}</div>
+        <div class="mf-fund-amount" style="color:#60a5fa">${formatINR(fundAmounts.mid_cap || 0)}</div>
         <div class="mf-fund-return">~14% p.a.</div>
       </div>
       <div class="mf-fund-box" style="border-color:rgba(34,197,94,0.3)">
         <div class="mf-fund-name" style="color:#22c55e">Small Cap</div>
-        <div class="mf-fund-amount" style="color:#22c55e">â‚¹${formatINR(fundAmounts.small_cap || 0)}</div>
+        <div class="mf-fund-amount" style="color:#22c55e">${formatINR(fundAmounts.small_cap || 0)}</div>
         <div class="mf-fund-return">~16% p.a.</div>
       </div>
     </div>
@@ -688,26 +742,26 @@
       return wrap;
     }
 
-    // â”€â”€â”€ Goal Motivator Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Goal Motivator Card 
     function buildGoalCard(goalProj) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
       wrap.style.cssText = 'max-width:100%;width:100%';
-      const emoji = (goalProj.goal_label || 'ðŸŽ¯').match(/^[\p{Emoji}]/u)?.[0] || 'ðŸŽ¯';
+      const emoji = (goalProj.goal_label || '').match(/^[\p{Emoji}]/u)?.[0] || '';
       const yrs = goalProj.years_needed;
       const progressPct = yrs ? Math.min(100, Math.round((1 / yrs) * 100)) : 5;
       wrap.innerHTML = `<div class="goal-card">
     <span class="goal-emoji">${emoji}</span>
     <div class="goal-headline">${escapeHtml(goalProj.goal_label || 'Your Financial Goal')}</div>
-    <div class="goal-timeline">${yrs ? `Target: ${yrs} years at â‚¹${formatINR(goalProj.monthly_sip || 0)}/month` : 'Let\'s plan this with your advisor'}</div>
-    <div class="goal-detail">Corpus needed: ${goalProj.target_corpus_formatted || 'â€”'} Â· Return: ${goalProj.assumed_return || 'â€”'}</div>
+    <div class="goal-timeline">${yrs ? `Target: ${yrs} years at ${formatINR(goalProj.monthly_sip || 0)}/month` : 'Let\'s plan this with your advisor'}</div>
+    <div class="goal-detail">Corpus needed: ${goalProj.target_corpus_formatted || ''}  Return: ${goalProj.assumed_return || ''}</div>
     <div class="goal-progress-bar"><div class="goal-progress-fill" style="width:${progressPct}%"></div></div>
     <div class="goal-detail" style="font-weight:600;color:var(--gold-400)">${escapeHtml(goalProj.motivation || '')}</div>
   </div>`;
       return wrap;
     }
 
-    // â”€â”€â”€ Chart Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Chart Card 
     function buildChartCard(p, investable, profile) {
       const wrapper = document.createElement('div');
       wrapper.className = 'msg bot';
@@ -720,22 +774,22 @@
       wrapper.innerHTML = `
     <div class="projection-card" style="width:100%">
       <div class="proj-header">
-        <div class="proj-title">ðŸ“ˆ Your Wealth Projection</div>
+        <div class="proj-title"> Your Wealth Projection</div>
         <span class="proj-badge">AI Generated</span>
       </div>
       <div class="chart-wrap"><canvas id="projChart" role="img" aria-label="Wealth projection chart"></canvas></div>
       <div class="proj-stats">
         <div class="stat-box">
           <div class="stat-label">Current Path (5yr)</div>
-          <div class="stat-value count-up" data-target="${p.current_5yr}">â‚¹0</div>
+          <div class="stat-value count-up" data-target="${p.current_5yr}">0</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Optimized (5yr)</div>
-          <div class="stat-value count-up" data-target="${p.optimized_5yr}" style="color:#22c55e">â‚¹0</div>
+          <div class="stat-value count-up" data-target="${p.optimized_5yr}" style="color:#22c55e">0</div>
         </div>
         <div class="stat-box">
           <div class="stat-label">Monthly SIP</div>
-          <div class="stat-value" style="color:#f5c518">â‚¹${formatINR(investable)}</div>
+          <div class="stat-value" style="color:#f5c518">${formatINR(investable)}</div>
         </div>
       </div>
     </div>`;
@@ -779,14 +833,14 @@
                 backgroundColor: 'rgba(5,7,15,0.9)',
                 borderColor: 'rgba(245,197,24,0.3)', borderWidth: 1,
                 titleColor: '#f5c518', bodyColor: 'rgba(240,242,250,0.8)',
-                callbacks: { label: ctx => ` â‚¹${formatINR(ctx.raw)}` }
+                callbacks: { label: ctx => ` ${formatINR(ctx.raw)}` }
               }
             },
             scales: {
               x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
               y: {
                 grid: { color: gridColor },
-                ticks: { color: textColor, font: { size: 10 }, callback: v => v >= 1e7 ? `â‚¹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `â‚¹${(v / 1e5).toFixed(0)}L` : `â‚¹${formatINR(v)}` }
+                ticks: { color: textColor, font: { size: 10 }, callback: v => v >= 1e7 ? `${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `${(v / 1e5).toFixed(0)}L` : `${formatINR(v)}` }
               }
             },
             interaction: { intersect: false, mode: 'index' }
@@ -798,7 +852,7 @@
           const dur = 1400; const start = performance.now();
           const tick = now => {
             const p = Math.min((now - start) / dur, 1);
-            el.textContent = 'â‚¹' + formatINR(Math.round(target * (1 - Math.pow(1 - p, 3))));
+            el.textContent = '' + formatINR(Math.round(target * (1 - Math.pow(1 - p, 3))));
             if (p < 1) requestAnimationFrame(tick);
           };
           requestAnimationFrame(tick);
@@ -808,7 +862,7 @@
       return wrapper;
     }
 
-    // â”€â”€â”€ Insights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Insights 
     function buildInsights(insights) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -829,17 +883,17 @@
       return wrap;
     }
 
-    // â”€â”€â”€ Gap Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Gap Banner 
     function buildGapBanner(a) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
       wrap.style.cssText = 'max-width:100%;width:100%';
       const shortfallText = a.retirement_shortfall > 0
         ? `Retirement shortfall: <strong>${formatCrLakh(a.retirement_shortfall)}</strong>.`
-        : `You're on track â€” but optimization adds <strong>${formatCrLakh(a.wealth_gap)}</strong> more.`;
+        : `You're on track  but optimization adds <strong>${formatCrLakh(a.wealth_gap)}</strong> more.`;
       wrap.innerHTML = `
     <div class="gap-banner">
-      <div class="gap-icon">âš ï¸</div>
+      <div class="gap-icon"></div>
       <div class="gap-text">
         Wealth gap detected: <strong>${formatCrLakh(a.wealth_gap)}</strong>. ${shortfallText}
         Key risk: ${escapeHtml(a.key_risk || 'Inflation erosion on idle savings')}.
@@ -848,7 +902,7 @@
       return wrap;
     }
 
-    // â”€â”€â”€ Growth Analysis (10-Year Timeline) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Growth Analysis (10-Year Timeline) 
     function buildGrowthAnalysis(projections, analysis) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -860,7 +914,7 @@
       // Title
       const title = document.createElement('div');
       title.style.cssText = 'font-family:"Outfit",sans-serif;font-weight:700;margin-bottom:1rem;font-size:0.95rem';
-      title.innerHTML = 'ðŸ“Š <strong>10-Year Growth Trajectory</strong>';
+      title.innerHTML = ' <strong>10-Year Growth Trajectory</strong>';
       card.appendChild(title);
 
       // Growth chart
@@ -982,7 +1036,7 @@
                 ticks: {
                   color: textColor,
                   font: { size: 10 },
-                  callback: v => v >= 1e7 ? `â‚¹${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `â‚¹${(v / 1e5).toFixed(0)}L` : `â‚¹${formatINR(v)}`
+                  callback: v => v >= 1e7 ? `${(v / 1e7).toFixed(1)}Cr` : v >= 1e5 ? `${(v / 1e5).toFixed(0)}L` : `${formatINR(v)}`
                 }
               }
             },
@@ -994,7 +1048,7 @@
       return wrap;
     }
 
-    // â”€â”€â”€ Locked 10-Year Blueprint â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Locked 10-Year Blueprint 
     function buildLockedSection(a) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -1002,22 +1056,22 @@
       wrap.innerHTML = `
     <div class="locked-section">
       <div class="locked-content">
-        <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">ðŸ”® Your 10-Year Wealth Blueprint</div>
+        <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.95rem;margin-bottom:0.75rem"> Your 10-Year Wealth Blueprint</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem">
           <div class="stat-box"><div class="stat-label">10Y Optimized</div><div class="stat-value">${formatCrLakh(a.projections.optimized_10yr)}</div></div>
           <div class="stat-box"><div class="stat-label">Max Potential</div><div class="stat-value">${formatCrLakh(a.projections.max_10yr)}</div></div>
         </div>
-        <div style="font-size:0.82rem;color:var(--text-secondary)">Personalised ladder Â· Tax optimisation Â· Rebalancing calendar Â· Goal milestones</div>
+        <div style="font-size:0.82rem;color:var(--text-secondary)">Personalised ladder  Tax optimisation  Rebalancing calendar  Goal milestones</div>
       </div>
       <div class="locked-overlay">
-        <div class="lock-icon">ðŸ”’</div>
+        <div class="lock-icon"></div>
         <div class="lock-text">Full blueprint unlocked with your advisor session</div>
       </div>
     </div>`;
       return wrap;
     }
 
-    // â”€â”€â”€ Hook CTA / Lead Capture â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Hook CTA / Lead Capture 
     function buildHookCTA(a, profile) {
       const wrap = document.createElement('div');
       wrap.className = 'msg bot';
@@ -1027,10 +1081,10 @@
       const cta = document.createElement('div');
       cta.className = 'hook-cta';
       cta.innerHTML = `
-        <span class="hook-emoji">ðŸ’¡</span>
+        <span class="hook-emoji"></span>
         <h2 class="hook-headline">Want to put this plan into action?</h2>
         <div class="hook-buttons">
-          <button class="btn-cta" id="fallback-yes-btn">âœ¨ Show Advisor Details â†’</button>
+          <button class="btn-cta" id="fallback-yes-btn"> Show Advisor Details </button>
         </div>`;
       
       cta.querySelector('#fallback-yes-btn').onclick = () => {
@@ -1042,7 +1096,7 @@
       return wrap;
     }
 
-    // â”€â”€â”€ Advisor Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Advisor Card 
     function showAdvisorCard(a, profile) {
       const goalText = String(profile?.goal || '').toLowerCase();
       const specialisations = {
@@ -1072,12 +1126,12 @@
       wrap.innerHTML = `
     <div class="advisor-card">
       <div class="advisor-top">
-        <div class="advisor-avatar">ðŸ‘¨â€ðŸ’¼</div>
+        <div class="advisor-avatar"></div>
         <div>
           <div class="advisor-name">Piyush Tembhekar</div>
           <div class="advisor-title">${spec}</div>
           <div class="advisor-creds">
-            <span class="cred-badge">CFPÂ®</span>
+            <span class="cred-badge">CFP</span>
             <span class="cred-badge">CFA</span>
             <span class="cred-badge">SEBI RIA</span>
             <span class="cred-badge">12+ Yrs</span>
@@ -1087,7 +1141,7 @@
       <div class="advisor-divider"></div>
       <div class="advisor-spec">
         Piyush specialises in <strong>${spec.toLowerCase()}</strong> with a focus on <strong>${risk}</strong>.
-        He has helped <strong>200+ clients</strong> grow wealth systematically â€” avg. portfolio CAGR of <strong>18.4%</strong> over 5 years.
+        He has helped <strong>200+ clients</strong> grow wealth systematically  avg. portfolio CAGR of <strong>18.4%</strong> over 5 years.
       </div>
       <div class="advisor-cta-title">Connect Now</div>
       <div class="advisor-note" style="font-size:1rem;color:var(--text-primary);margin-top:0.25rem">Contact Number: +91 86057 27484</div>
@@ -1096,12 +1150,12 @@
       addElement(wrap);
 
       setTimeout(() => {
-        addBotMessage("â˜ï¸ Piyush is available **Monâ€“Sat, 10AMâ€“7PM IST**.\n\nYou can ask me any financial questions in the meantime. ðŸ˜Š");
+        addBotMessage(" Piyush is available **MonSat, 10AM7PM IST**.\n\nYou can ask me any financial questions in the meantime. ");
         enableFreeChat('Ask me anything about your finances...');
       }, 600);
     }
 
-    // â”€â”€â”€ Free Chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Free Chat 
     function enableFreeChat(placeholder) {
       const input = document.getElementById('chat-input');
       const btn = document.getElementById('send-btn');
@@ -1111,7 +1165,7 @@
       isWaiting = false;
     }
 
-    // â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Init 
     async function initSession() {
       // Clear messages
       const msgs = document.getElementById('messages');
@@ -1167,33 +1221,35 @@
       padding: 1.5rem;
       text-align: center;
     ">
-      <div style="font-size:2rem;margin-bottom:0.75rem">âš¡</div>
+      <div style="font-size:2rem;margin-bottom:0.75rem"></div>
       <div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:#f87171;margin-bottom:0.5rem">
         Cannot reach the backend server
       </div>
       <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:1rem">
         The UI could not start a chat session.<br/>
         <strong style="color:var(--gold-400)">${origin}${API_BASE}/start</strong></div>
-      <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">If this keeps happening, open DevTools → Network and check the status/response of <strong>/api/chat/start</strong>, then check your server logs.</div>${errMsg ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem">Error: ${escapeHtml(errMsg)}</div>` : ''}
+      <div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;margin-bottom:1rem">If this keeps happening, open DevTools  Network and check the status/response of <strong>/api/chat/start</strong>, then check your server logs.</div>${errMsg ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:1rem">Error: ${escapeHtml(errMsg)}</div>` : ''}
       <button onclick="initSession()" class="btn-gold" style="width:100%;padding:0.75rem">
-        ðŸ”„ Retry Connection
+         Retry Connection
       </button>
     </div>`;
       msgs.insertBefore(card, typing);
       scrollToBottom();
     }
 
-    // â”€â”€â”€ Event Listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    //  Event Listeners 
     document.addEventListener('DOMContentLoaded', () => {
       // Theme
+      const isEmbedded = document.documentElement.getAttribute('data-embed') === 'true';
       const savedTheme = localStorage.getItem('financeai_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      document.getElementById('theme-toggle').textContent = savedTheme === 'dark' ? 'â˜€ï¸' : 'ðŸŒ™';
+      if (!document.documentElement.getAttribute('data-theme')) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
 
       document.getElementById('theme-toggle').addEventListener('click', () => {
+        if (isEmbedded) return; // follow host theme in embed mode
         const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
-        document.getElementById('theme-toggle').textContent = next === 'dark' ? 'â˜€ï¸' : 'ðŸŒ™';
         localStorage.setItem('financeai_theme', next);
         if (projChart) {
           const isDark = next === 'dark';

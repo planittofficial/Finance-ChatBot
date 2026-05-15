@@ -1,89 +1,104 @@
 /* ============================================================
-   FINANCE CHATBOT — DESIGN SYSTEM
-   Dark: Black + Gold | Light: White + Gold
+   FINANCE CHATBOT — PLANITT EMBED THEME
+   Dark: charcoal + teal | Light: off-white + teal
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
-/* ─── CSS Variables ─── */
+/* CSS Variables */
 :root {
-  /* Gold palette */
-  --gold-100: #fff8e7;
-  --gold-200: #fdeaa8;
-  --gold-300: #f9d05e;
-  --gold-400: #f5c518;
-  --gold-500: #d4a600;
-  --gold-600: #a07800;
-  --gold-glow: rgba(245, 197, 24, 0.35);
-  --gold-glow-soft: rgba(245, 197, 24, 0.12);
+  /* Planitt-like accent */
+  --accent-500: #00d09c;
+  --accent-600: #00b386;
+  --accent-700: #08916f;
+  --accent-glow: rgba(0, 208, 156, 0.35);
+  --accent-glow-soft: rgba(0, 208, 156, 0.12);
+
+  /* Back-compat aliases used in existing rules */
+  --gold-100: rgba(0, 208, 156, 0.10);
+  --gold-200: rgba(0, 208, 156, 0.16);
+  --gold-300: rgba(0, 208, 156, 0.22);
+  --gold-400: var(--accent-500);
+  --gold-500: var(--accent-600);
+  --gold-600: var(--accent-700);
+  --gold-glow: var(--accent-glow);
+  --gold-glow-soft: var(--accent-glow-soft);
 
   /* Dark theme (default) */
-  --bg-primary: #05070f;
-  --bg-secondary: #0d1020;
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
   --bg-card: rgba(255, 255, 255, 0.04);
   --bg-card-hover: rgba(255, 255, 255, 0.07);
   --bg-input: rgba(255, 255, 255, 0.06);
-  --bg-chip: rgba(245, 197, 24, 0.08);
-  --bg-chip-hover: rgba(245, 197, 24, 0.18);
+  --bg-chip: rgba(0, 208, 156, 0.10);
+  --bg-chip-hover: rgba(0, 208, 156, 0.18);
   --border: rgba(255, 255, 255, 0.08);
-  --border-gold: rgba(245, 197, 24, 0.3);
-  --text-primary: #f0f2fa;
-  --text-secondary: #8a91b0;
-  --text-muted: #505878;
-  --bot-bubble: rgba(255, 255, 255, 0.05);
-  --user-bubble: linear-gradient(135deg, #d4a600, #f5c518);
-  --user-bubble-text: #05070f;
-  --scrollbar-track: rgba(255,255,255,0.03);
-  --scrollbar-thumb: rgba(245,197,24,0.3);
-  --orb-1: rgba(245, 197, 24, 0.08);
-  --orb-2: rgba(180, 130, 0, 0.06);
-  --shadow-card: 0 8px 32px rgba(0,0,0,0.4);
-  --shadow-gold: 0 0 30px rgba(245,197,24,0.2);
-  --advisor-bg: rgba(245, 197, 24, 0.06);
-  --theme-icon: '☀️';
+  --border-gold: rgba(0, 208, 156, 0.30);
+  --text-primary: #f5f5f5;
+  --text-secondary: #9e9e9e;
+  --text-muted: #5e5e5e;
+  --bot-bubble: rgba(255, 255, 255, 0.04);
+  --user-bubble: linear-gradient(135deg, var(--accent-600), var(--accent-500));
+  --user-bubble-text: #031a14;
+  --scrollbar-track: rgba(255, 255, 255, 0.03);
+  --scrollbar-thumb: rgba(0, 208, 156, 0.30);
+  --orb-1: rgba(0, 208, 156, 0.10);
+  --orb-2: rgba(76, 110, 245, 0.08);
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --shadow-gold: 0 0 24px rgba(0, 208, 156, 0.20);
+  --advisor-bg: rgba(0, 208, 156, 0.08);
 }
 
 [data-theme="light"] {
-  --bg-primary: #f9f6ef;
+  --bg-primary: #f8f9fb;
   --bg-secondary: #ffffff;
   --bg-card: rgba(255, 255, 255, 0.85);
   --bg-card-hover: rgba(255, 255, 255, 0.95);
-  --bg-input: rgba(0, 0, 0, 0.04);
-  --bg-chip: rgba(245, 197, 24, 0.12);
-  --bg-chip-hover: rgba(245, 197, 24, 0.25);
-  --border: rgba(0, 0, 0, 0.08);
-  --border-gold: rgba(200, 150, 0, 0.4);
-  --text-primary: #12151f;
-  --text-secondary: #555e80;
-  --text-muted: #9099b5;
-  --bot-bubble: rgba(0, 0, 0, 0.04);
-  --user-bubble: linear-gradient(135deg, #c89a00, #f5c518);
+  --bg-input: rgba(15, 23, 42, 0.05);
+  --bg-chip: rgba(0, 208, 156, 0.12);
+  --bg-chip-hover: rgba(0, 208, 156, 0.22);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-gold: rgba(0, 179, 134, 0.45);
+  --text-primary: #101828;
+  --text-secondary: #334155;
+  --text-muted: #667085;
+  --bot-bubble: rgba(15, 23, 42, 0.04);
   --user-bubble-text: #ffffff;
-  --scrollbar-track: rgba(0,0,0,0.04);
-  --scrollbar-thumb: rgba(200,150,0,0.35);
-  --orb-1: rgba(245, 197, 24, 0.15);
-  --orb-2: rgba(200, 150, 0, 0.1);
-  --shadow-card: 0 8px 32px rgba(0,0,0,0.1);
-  --shadow-gold: 0 0 30px rgba(245,197,24,0.15);
-  --advisor-bg: rgba(245, 197, 24, 0.08);
-  --theme-icon: '🌙';
+  --scrollbar-track: rgba(15, 23, 42, 0.05);
+  --scrollbar-thumb: rgba(0, 179, 134, 0.35);
+  --orb-1: rgba(0, 208, 156, 0.12);
+  --orb-2: rgba(76, 110, 245, 0.10);
+  --shadow-card: 0 8px 32px rgba(15, 23, 42, 0.12);
 }
-
-/* ─── Reset & Base ─── */
+/* â”€â”€â”€ Reset & Base â”€â”€â”€ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; scroll-behavior: smooth; }
 
 body {
   font-family: 'Inter', sans-serif;
-  background: var(--bg-primary);
+  background: radial-gradient(1200px 260px at -20% -120%, rgba(0, 208, 156, 0.12), transparent 55%), var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.4s ease, color 0.4s ease;
 }
 
-/* ─── Background Orbs ─── */
+/* Consistent SVG icon sizing */
+.icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* Embed mode for Planitt iframe */
+html[data-embed="true"] body { background: transparent; }
+html[data-embed="true"] .bg-orbs { display: none; }
+html[data-embed="true"] .header { display: none; }
+html[data-embed="true"] .main { max-width: none; padding: 0; }
+html[data-embed="true"] #app { min-height: 100vh; }
+
+/* â”€â”€â”€ Background Orbs â”€â”€â”€ */
 .bg-orbs {
   position: fixed;
   inset: 0;
@@ -121,7 +136,7 @@ body {
   100% { transform: translate(40px, 30px) scale(1.1); }
 }
 
-/* ─── App Shell ─── */
+/* â”€â”€â”€ App Shell â”€â”€â”€ */
 #app {
   position: relative;
   z-index: 1;
@@ -130,7 +145,7 @@ body {
   flex-direction: column;
 }
 
-/* ─── Header ─── */
+/* â”€â”€â”€ Header â”€â”€â”€ */
 .header {
   display: flex;
   align-items: center;
@@ -220,7 +235,7 @@ body {
   background: var(--bg-chip-hover);
 }
 
-/* ─── Main Layout ─── */
+/* â”€â”€â”€ Main Layout â”€â”€â”€ */
 .main {
   flex: 1;
   display: flex;
@@ -232,7 +247,7 @@ body {
   gap: 0;
 }
 
-/* ─── API Key Gate ─── */
+/* â”€â”€â”€ API Key Gate â”€â”€â”€ */
 #api-gate {
   display: flex;
   flex-direction: column;
@@ -301,7 +316,7 @@ body {
 }
 .text-input::placeholder { color: var(--text-muted); }
 
-/* ─── Buttons ─── */
+/* â”€â”€â”€ Buttons â”€â”€â”€ */
 .btn-gold {
   background: linear-gradient(135deg, var(--gold-500), var(--gold-400));
   color: #05070f;
@@ -340,7 +355,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* ─── Chat Window ─── */
+/* â”€â”€â”€ Chat Window â”€â”€â”€ */
 #chat-window {
   display: none;
   flex-direction: column;
@@ -348,7 +363,7 @@ body {
 }
 #chat-window.active { display: flex; }
 
-/* ─── Progress Bar ─── */
+/* â”€â”€â”€ Progress Bar â”€â”€â”€ */
 .progress-header {
   padding: 1rem 0 0.5rem;
 }
@@ -374,7 +389,7 @@ body {
   box-shadow: 0 0 8px var(--gold-glow);
 }
 
-/* ─── Messages Area ─── */
+/* â”€â”€â”€ Messages Area â”€â”€â”€ */
 .messages {
   flex: 1;
   overflow-y: auto;
@@ -388,7 +403,7 @@ body {
 .messages::-webkit-scrollbar-track { background: var(--scrollbar-track); }
 .messages::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 99px; }
 
-/* ─── Message Bubbles ─── */
+/* â”€â”€â”€ Message Bubbles â”€â”€â”€ */
 .msg {
   display: flex;
   align-items: flex-end;
@@ -432,7 +447,7 @@ body {
   font-weight: 500;
 }
 
-/* ─── Typing Indicator ─── */
+/* â”€â”€â”€ Typing Indicator â”€â”€â”€ */
 .typing-indicator {
   display: none;
   align-items: center;
@@ -463,7 +478,7 @@ body {
   30% { transform: translateY(-5px); opacity: 1; }
 }
 
-/* ─── Input Area ─── */
+/* â”€â”€â”€ Input Area â”€â”€â”€ */
 .input-area {
   padding: 1rem 0 1.5rem;
   border-top: 1px solid var(--border);
@@ -514,7 +529,7 @@ body {
   transform: none;
 }
 
-/* ─── Choice Chips ─── */
+/* â”€â”€â”€ Choice Chips â”€â”€â”€ */
 .chips-row {
   display: flex;
   flex-wrap: wrap;
@@ -552,7 +567,7 @@ body {
   text-align: center;
 }
 
-/* ─── Snapshot Card (visuals in every response) ─── */
+/* â”€â”€â”€ Snapshot Card (visuals in every response) â”€â”€â”€ */
 .snapshot-card {
   background: var(--bg-card);
   border: 1px solid var(--border-gold);
@@ -716,7 +731,7 @@ body {
   box-shadow: 0 4px 15px var(--gold-glow-soft);
 }
 
-/* ─── Projection Card ─── */
+/* â”€â”€â”€ Projection Card â”€â”€â”€ */
 .projection-card {
   background: var(--bg-card);
   border: 1px solid var(--border-gold);
@@ -792,7 +807,7 @@ body {
   color: var(--gold-400);
 }
 
-/* ─── Insight Cards ─── */
+/* â”€â”€â”€ Insight Cards â”€â”€â”€ */
 .insights-grid {
   display: flex;
   flex-direction: column;
@@ -834,7 +849,7 @@ body {
   margin-top: 0.4rem;
 }
 
-/* ─── Locked Section (Blur) ─── */
+/* â”€â”€â”€ Locked Section (Blur) â”€â”€â”€ */
 .locked-section {
   position: relative;
   border-radius: 16px;
@@ -874,7 +889,7 @@ body {
   text-align: center;
 }
 
-/* ─── Hook CTA ─── */
+/* â”€â”€â”€ Hook CTA â”€â”€â”€ */
 .hook-cta {
   background: linear-gradient(135deg, rgba(245,197,24,0.1), rgba(180,130,0,0.05));
   border: 1px solid var(--border-gold);
@@ -950,7 +965,7 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 8px 40px rgba(245,197,24,0.55);
 }
-/* ─── Advisor Card ─── */
+/* â”€â”€â”€ Advisor Card â”€â”€â”€ */
 .advisor-card {
   background: var(--advisor-bg);
   border: 1px solid var(--border-gold);
@@ -1045,7 +1060,7 @@ body {
 }
 .advisor-note span { color: #22c55e; }
 
-/* ─── Wealth Gap Banner ─── */
+/* â”€â”€â”€ Wealth Gap Banner â”€â”€â”€ */
 .gap-banner {
   background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(245,197,24,0.05));
   border: 1px solid rgba(239,68,68,0.25);
@@ -1069,7 +1084,7 @@ body {
   font-size: 1rem;
 }
 
-/* ─── Animations ─── */
+/* â”€â”€â”€ Animations â”€â”€â”€ */
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -1090,13 +1105,144 @@ body {
   height: 1rem;
 }
 
-/* ─── Number Counter Animation ─── */
+/* â”€â”€â”€ Number Counter Animation â”€â”€â”€ */
 .count-up {
   display: inline-block;
   font-variant-numeric: tabular-nums;
 }
 
-/* ─── Restart button ─── */
+/* â”€â”€â”€ Milestone / Hook Card (mid-conversation insights) â”€â”€â”€ */
+.milestone-card {
+  background: linear-gradient(135deg, rgba(0,208,156,0.08), rgba(76,110,245,0.04));
+  border: 1px solid rgba(0,208,156,0.3);
+  border-left: 3px solid var(--gold-400);
+  border-radius: 14px;
+  padding: 1rem 1.15rem;
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  animation: milestone-slide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+.milestone-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--gold-400), transparent 80%);
+}
+.milestone-card strong { color: var(--gold-400); }
+.milestone-card em { color: var(--text-primary); font-style: italic; }
+@keyframes milestone-slide {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* â”€â”€â”€ Countdown Badge â”€â”€â”€ */
+.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(0,208,156,0.12);
+  border: 1px solid rgba(0,208,156,0.3);
+  color: var(--gold-400);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  padding: 0.3rem 0.75rem;
+  border-radius: 99px;
+  animation: countdown-pulse 2s ease-in-out infinite;
+  margin: 0.4rem 0;
+}
+@keyframes countdown-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,208,156,0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(0,208,156,0); }
+}
+
+/* â”€â”€â”€ Celebration Sparkle â”€â”€â”€ */
+.celebration-container {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+.sparkle {
+  position: absolute;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  animation: sparkle-rise 1.2s ease-out forwards;
+  opacity: 0;
+}
+@keyframes sparkle-rise {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  50% { opacity: 0.8; transform: translateY(-40px) scale(1.3); }
+  100% { opacity: 0; transform: translateY(-80px) scale(0.5); }
+}
+
+/* â”€â”€â”€ Improved Chip Styling (larger targets, stagger animation) â”€â”€â”€ */
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+.chip-container .chip {
+  animation: chip-appear 0.3s ease backwards;
+}
+.chip-container .chip:nth-child(1) { animation-delay: 0.05s; }
+.chip-container .chip:nth-child(2) { animation-delay: 0.1s; }
+.chip-container .chip:nth-child(3) { animation-delay: 0.15s; }
+.chip-container .chip:nth-child(4) { animation-delay: 0.2s; }
+.chip-container .chip:nth-child(5) { animation-delay: 0.25s; }
+.chip-container .chip:nth-child(6) { animation-delay: 0.3s; }
+.chip-container .chip:nth-child(7) { animation-delay: 0.35s; }
+.chip-container .chip:nth-child(8) { animation-delay: 0.4s; }
+@keyframes chip-appear {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* â”€â”€â”€ Lead Capture Card â”€â”€â”€ */
+.lead-capture-card {
+  background: linear-gradient(135deg, rgba(0,208,156,0.1), rgba(76,110,245,0.05));
+  border: 1px solid rgba(0,208,156,0.35);
+  border-radius: 16px;
+  padding: 1.25rem;
+  text-align: center;
+  animation: fade-up 0.5s ease;
+  margin: 0.5rem 0;
+}
+.lead-capture-card h3 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+.lead-capture-input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-gold);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 0.75rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.lead-capture-input:focus {
+  border-color: var(--gold-400);
+}
+.lead-capture-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* â”€â”€â”€ Restart button â”€â”€â”€ */
 .restart-btn {
   background: transparent;
   border: none;
@@ -1110,7 +1256,7 @@ body {
 }
 .restart-btn:hover { color: var(--gold-400); }
 
-/* ─── Expense Breakdown Card ─── */
+/* â”€â”€â”€ Expense Breakdown Card â”€â”€â”€ */
 .expense-card {
   background: var(--bg-card);
   border: 1px solid var(--border-gold);
@@ -1174,7 +1320,7 @@ body {
   font-size: 0.82rem;
 }
 
-/* ─── MF Allocation Card ─── */
+/* â”€â”€â”€ MF Allocation Card â”€â”€â”€ */
 .mf-card {
   background: var(--bg-card);
   border: 1px solid var(--border-gold);
@@ -1249,7 +1395,7 @@ body {
   margin-top: 0.2rem;
 }
 
-/* ─── Goal Motivator Card ─── */
+/* â”€â”€â”€ Goal Motivator Card â”€â”€â”€ */
 .goal-card {
   background: linear-gradient(135deg, rgba(245,197,24,0.08), rgba(34,197,94,0.04));
   border: 1px solid var(--border-gold);
@@ -1311,7 +1457,7 @@ body {
   box-shadow: 0 0 12px rgba(34,197,94,0.3);
 }
 
-/* ─── Growth Analysis Card ─── */
+/* â”€â”€â”€ Growth Analysis Card â”€â”€â”€ */
 .growth-analysis-card {
   background: var(--bg-card);
   border: 1px solid var(--border-gold);
@@ -1324,7 +1470,7 @@ body {
   overflow: hidden;
 }
 
-/* ─── Responsive ─── */
+/* â”€â”€â”€ Responsive â”€â”€â”€ */
 @media (max-width: 600px) {
   .header { padding: 1rem; }
   .main { padding: 1rem 0.75rem 0; }
@@ -1345,3 +1491,6 @@ body {
   .proj-stats { grid-template-columns: 1fr 1fr; }
   .mf-details { grid-template-columns: 1fr; }
 }
+
+/* Planitt Website Theme Compatibility Overrides */
+
