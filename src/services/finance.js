@@ -408,6 +408,48 @@ function validateProfileField(field, value) {
   return { valid: true };
 }
 
+function inflationLossPerYear(amount, inflationRate = 0.06) {
+  const a = toNumber(amount);
+  if (a <= 0) return 0;
+  return Math.round(a * inflationRate);
+}
+
+function getExpenseSuggestions(monthlySalary, category) {
+  const salary = Math.max(0, Math.round(toNumber(monthlySalary)));
+  const key = String(category || '').toLowerCase();
+
+  if (!salary) return ['₹0', '₹5,000', '₹10,000', '₹15,000', '₹20,000+'];
+
+  const bands = (pctList) => {
+    const uniq = [];
+    for (const p of pctList) {
+      const amt = Math.max(0, Math.round((salary * p) / 100 / 500) * 500);
+      if (!uniq.includes(amt)) uniq.push(amt);
+    }
+    return uniq.map(n => `₹${formatINR(n)}`).concat([`₹${formatINR(Math.round(salary * 0.6))}+`]);
+  };
+
+  if (key === 'basic_needs') return bands([20, 30, 40, 50]);
+  if (key === 'personal_spending') return bands([5, 10, 15, 20]);
+  if (key === 'bills_payments') return ['₹0', `₹${formatINR(Math.round(salary * 0.1))}`, `₹${formatINR(Math.round(salary * 0.2))}`, `₹${formatINR(Math.round(salary * 0.3))}+`];
+  if (key === 'extra_unexpected') return ['₹0', `₹${formatINR(Math.round(salary * 0.03))}`, `₹${formatINR(Math.round(salary * 0.06))}`, `₹${formatINR(Math.round(salary * 0.1))}+`];
+
+  return ['₹0', `₹${formatINR(Math.round(salary * 0.1))}`, `₹${formatINR(Math.round(salary * 0.2))}`, `₹${formatINR(Math.round(salary * 0.3))}+`];
+}
+
+function getExpenseBenchmark(monthlySalary, category) {
+  const salary = Math.max(0, Math.round(toNumber(monthlySalary)));
+  const key = String(category || '').toLowerCase();
+  if (!salary) return null;
+
+  if (key === 'personal_spending') {
+    const averagePct = salary <= 30000 ? 12 : salary <= 80000 ? 10 : 8;
+    return { average_pct: averagePct, average_amount: Math.round((salary * averagePct) / 100) };
+  }
+
+  return null;
+}
+
 // Rough India-centric income percentile estimate for messaging hooks.
 // Heuristic only (not authoritative statistics).
 function getIncomePercentile(monthlySalary) {
@@ -425,6 +467,9 @@ function getIncomePercentile(monthlySalary) {
 module.exports = {
   formatINR,
   formatCrLakh,
+  inflationLossPerYear,
+  getExpenseSuggestions,
+  getExpenseBenchmark,
   getIncomePercentile,
   calculateFinancialPlan,
   calculateGoalProjection,

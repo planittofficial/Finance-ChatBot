@@ -59,6 +59,28 @@ EXAMPLES:
 ✗ "I need you to tell me..."
 `.trim();
 
+// Mid-conversation micro-insights (shown as milestone hooks during data collection)
+// Placeholders:
+//   {{PARTIAL_PROFILE}} - a short context string
+//   {{HOOK_CONTEXT}}    - the specific moment/insight request
+const MID_CONVERSATION_HOOK_PROMPT = `
+${MASTER_IDENTITY}
+
+You are generating a SHORT (1-2 lines) motivational micro-insight during a finance onboarding chat.
+Be factual, encouraging, and avoid hype.
+
+PARTIAL PROFILE:
+{{PARTIAL_PROFILE}}
+
+CONTEXT:
+{{HOOK_CONTEXT}}
+
+Rules:
+- Max 2 sentences.
+- Use ₹ amounts when relevant.
+- Do not ask a new question.
+`.trim();
+
 // ─── Phase: Financial Analysis (JSON output) ──────────────────────────────────
 const ANALYSIS_PROMPT = `
 ${MASTER_IDENTITY}
@@ -286,6 +308,7 @@ Generate a comprehensive financial analysis. Return only valid JSON.`;
 module.exports = {
   MASTER_IDENTITY,
   COLLECTION_PROMPT,
+  MID_CONVERSATION_HOOK_PROMPT,
   ANALYSIS_PROMPT,
   CHAT_PROMPT,
   OFFTOPIC_CLASSIFIER,
