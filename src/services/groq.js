@@ -51,8 +51,17 @@ async function chat(messages, opts = {}) {
     params.response_format = { type: 'json_object' };
   }
 
-  const completion = await client.chat.completions.create(params);
-  return completion.choices[0].message.content.trim();
+  try {
+    const completion = await client.chat.completions.create(params);
+    return completion.choices[0].message.content.trim();
+  } catch (err) {
+    const status = err?.status || err?.statusCode || err?.response?.status;
+    const safeStatus = typeof status === 'number' ? status : 502;
+    const msg = err?.error?.message || err?.message || 'Groq request failed';
+    const e = new Error(`Groq API error${safeStatus ? ` (${safeStatus})` : ''}: ${msg}`);
+    e.status = safeStatus >= 400 && safeStatus < 600 ? safeStatus : 502;
+    throw e;
+  }
 }
 
 /**
