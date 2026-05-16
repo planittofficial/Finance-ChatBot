@@ -183,16 +183,24 @@ app.use(express.static(__dirname, {
 }));
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/health', (req, res) => {
+function buildHealthPayload() {
   const stats = sessionStore.getStats();
-  res.json({
+  return {
     status:           'ok',
     uptime:           Math.round(process.uptime()),
     model:            process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
     activeSessions:   stats.activeSessions,
     environment:      process.env.NODE_ENV || 'development',
     timestamp:        new Date().toISOString(),
-  });
+  };
+}
+
+app.get('/health', (_req, res) => {
+  res.json(buildHealthPayload());
+});
+
+app.get('/api/health', (_req, res) => {
+  res.json(buildHealthPayload());
 });
 
 // ─── API Root ─────────────────────────────────────────────────────────────────
@@ -207,6 +215,7 @@ app.get('/api', (req, res) => {
       'GET  /api/chat/session/:id':  'Get full session state',
       'DELETE /api/chat/session/:id':'End session',
       'GET  /health':                'Health check',
+      'GET  /api/health':            'Health check alias',
     },
   });
 });

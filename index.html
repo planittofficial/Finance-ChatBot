@@ -1274,7 +1274,7 @@
       setServerStatus('connecting');
 
       showTyping(true);
-      await sleep(500);
+      await warmBackend();
 
       try {
         const data = await apiPost('/start', {});
@@ -1336,6 +1336,44 @@
       scrollToBottom();
     }
 
+    function getBackendOrigin() {
+      try {
+        return new URL(API_BASE, window.location.href).origin;
+      } catch (_) {
+        return window.location.origin;
+      }
+    }
+
+    async function pingHealth() {
+      try {
+        const res = await fetch(`${getBackendOrigin()}/health`, { cache: 'no-store' });
+        if (!res.ok) return false;
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) return false;
+        const data = await res.json();
+        return data && data.status === 'ok';
+      } catch (_) {
+        return false;
+      }
+    }
+
+    let healthHeartbeatId = null;
+
+    function startHealthHeartbeat() {
+      if (healthHeartbeatId) return;
+      const tick = () => { pingHealth(); };
+      tick();
+      healthHeartbeatId = setInterval(tick, 10 * 60 * 1000);
+    }
+
+    async function warmBackend() {
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        if (await pingHealth()) return true;
+        await sleep(1500);
+      }
+      return false;
+    }
+
     //  Event Listeners 
     document.addEventListener('DOMContentLoaded', () => {
       // Theme
@@ -1375,7 +1413,7 @@
         sendBtn.disabled = chatInput.value.trim() === '' || isWaiting;
       });
 
-      // Start
+      startHealthHeartbeat();
       initSession();
     });
   </script>
