@@ -261,9 +261,9 @@ function calculateFinancialPlan(profile) {
   const postCutSurplus = Math.max(0, plannedCuts - deficitAmount);
   const recoverySuggestedSavings = Math.round(postCutSurplus * 0.2);
   const postCutInvestableAmount = Math.max(0, postCutSurplus - recoverySuggestedSavings);
-  // If surplus is exactly zero, still guide users with a minimum starter SIP.
-  const zeroSurplusStarterSip = rawMonthlySurplus === 0 ? 500 : 0;
-  const optimizedSip = Math.max(postCutInvestableAmount, zeroSurplusStarterSip);
+  // If expenses are >= income, still guide users with a minimum starter SIP.
+  const minimumStarterSip = needsOptimizationPath ? 500 : 0;
+  const optimizedSip = Math.max(postCutInvestableAmount, minimumStarterSip);
   const recommendedSipForProjection = needsOptimizationPath ? optimizedSip : investableAmount;
 
   // Time-horizon projections
@@ -311,7 +311,7 @@ function calculateFinancialPlan(profile) {
     expenseInsights.push(
       `📌 Post-optimization path: Personal Spending cut target ₹${formatINR(personalWhatIfCut)}/month and ` +
       `Extra / Unexpected cut target ₹${formatINR(extraWhatIfCut)}/month. ` +
-      `Estimated SIP after these cuts: ₹${formatINR(recommendedSipForProjection)}/month.`
+      `Start with a minimum SIP of ₹${formatINR(Math.max(500, recommendedSipForProjection))}/month and increase it as you reduce these two categories.`
     );
   }
 
