@@ -90,7 +90,9 @@ function renderLeads(leads) {
     tbody.appendChild(tr);
   });
 
-  el('total-count').textContent = String(leads.length);
+  const count = String(leads.length);
+  el('total-count').textContent = count;
+  if (el('stat-total')) el('stat-total').textContent = count;
 }
 
 function applySearch() {

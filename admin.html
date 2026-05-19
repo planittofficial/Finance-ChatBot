@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
@@ -17,7 +17,7 @@
   <div id="app">
     <header class="header">
       <div class="logo">
-        <div class="logo-icon">✦</div>
+        <div class="logo-icon">AI</div>
         <div>
           <div class="logo-text">FinanceAI Admin</div>
           <div class="logo-sub">Lead Dashboard</div>
@@ -29,97 +29,119 @@
     </header>
 
     <main class="admin-shell">
-      <div class="admin-container">
-        <div class="admin-top">
-          <div>
-            <div class="admin-title">Leads (MongoDB)</div>
-            <div class="admin-subtitle">Search leads and view contact details, salary, insights, and conversation time.</div>
-          </div>
-          <div class="admin-actions">
-            <span class="badge">Signed in: <span id="whoami">—</span></span>
-            <button class="admin-btn" id="btn-refresh" type="button">Refresh</button>
-            <button class="admin-btn" id="btn-logout" type="button">Logout</button>
-          </div>
-        </div>
-
-        <div class="admin-grid">
-          <section class="admin-card" id="login-card">
-            <div class="admin-card-inner">
-              <div class="admin-title">Admin login</div>
-              <div class="admin-subtitle">Only verified users can access the dashboard.</div>
-
-              <form id="login-form" style="margin-top: 0.9rem; display: grid; gap: 0.7rem;">
-                <div>
-                  <div class="small" style="margin-bottom:0.35rem">Username</div>
-                  <input class="admin-input" id="username" name="username" autocomplete="username" required />
-                </div>
-                <div>
-                  <div class="small" style="margin-bottom:0.35rem">Password</div>
-                  <input class="admin-input" id="password" name="password" type="password" autocomplete="current-password" required />
-                </div>
-                <button class="admin-btn primary" type="submit">Login</button>
-                <div class="err" id="login-error"></div>
-                <div class="small">
-                  Setup hint: set <strong>ADMIN_USERNAME</strong> and <strong>ADMIN_PASSWORD</strong> in your <strong>.env</strong> (server will seed the first admin user).
-                </div>
-              </form>
+      <div class="admin-page">
+        <div class="admin-container">
+          <div class="admin-top admin-card">
+            <div class="admin-card-inner admin-top-inner">
+              <div>
+                <div class="admin-title">Leads (MongoDB)</div>
+                <div class="admin-subtitle">Search leads and view contact details, salary, insights, and conversation time.</div>
+              </div>
+              <div class="admin-actions">
+                <span class="badge">Signed in: <span id="whoami">—</span></span>
+                <button class="admin-btn" id="btn-refresh" type="button">Refresh</button>
+                <button class="admin-btn" id="btn-logout" type="button">Logout</button>
+              </div>
             </div>
-          </section>
+          </div>
 
-          <section class="admin-card hidden" id="leads-card">
-            <div class="admin-card-inner">
-              <div class="admin-toolbar">
-                <div>
-                  <div class="admin-title">Lead list</div>
-                  <div class="admin-subtitle">Tip: search by name, mobile, or address.</div>
-                </div>
+          <div class="admin-grid">
+            <section class="admin-card" id="login-card">
+              <div class="admin-card-inner">
+                <div class="admin-title">Admin login</div>
+                <div class="admin-subtitle">Only verified users can access the dashboard.</div>
 
-                <div class="admin-toolbar-right">
-                  <div class="admin-search">
-                    <input class="admin-input" id="search" placeholder="Search leads…" autocomplete="off" />
-                    <button class="admin-btn" id="btn-clear" type="button">Clear</button>
+                <form id="login-form" class="admin-form">
+                  <div>
+                    <div class="small admin-field-label">Username</div>
+                    <input class="admin-input" id="username" name="username" autocomplete="username" required />
                   </div>
-                  <div class="badge">Showing: <span id="total-count">0</span></div>
+                  <div>
+                    <div class="small admin-field-label">Password</div>
+                    <input class="admin-input" id="password" name="password" type="password" autocomplete="current-password" required />
+                  </div>
+                  <button class="admin-btn primary" type="submit">Login</button>
+                  <div class="err" id="login-error"></div>
+                  <div class="small">
+                    Setup hint: set <strong>ADMIN_USERNAME</strong> and <strong>ADMIN_PASSWORD</strong> in your <strong>.env</strong> (server will seed the first admin user).
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="admin-card hidden" id="leads-card">
+              <div class="admin-card-inner">
+                <div class="admin-toolbar">
+                  <div>
+                    <div class="admin-title">Lead list</div>
+                    <div class="admin-subtitle">Tip: search by name, mobile, or address.</div>
+                  </div>
+
+                  <div class="admin-toolbar-right">
+                    <div class="admin-search">
+                      <input class="admin-input" id="search" placeholder="Search leads…" autocomplete="off" />
+                      <button class="admin-btn" id="btn-clear" type="button">Clear</button>
+                    </div>
+                    <div class="badge">Showing: <span id="total-count">0</span></div>
+                  </div>
+                </div>
+                <div class="err" id="leads-error"></div>
+
+                <div class="admin-table-wrap">
+                  <table class="admin-table" aria-label="Leads table">
+                    <thead>
+                      <tr>
+                        <th>Conversation Date/Time</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Address</th>
+                        <th>Monthly Salary</th>
+                        <th>Summarized Financial Insights</th>
+                      </tr>
+                    </thead>
+                    <tbody id="leads-tbody"></tbody>
+                  </table>
+
+                  <div class="admin-empty hidden" id="empty-state">
+                    <div class="admin-title empty-title">No leads found</div>
+                    <div class="admin-subtitle">Try clearing the search or refreshing.</div>
+                  </div>
                 </div>
               </div>
-              <div class="err" id="leads-error" style="margin-top:0.5rem"></div>
+            </section>
+          </div>
+        </div>
 
-              <div class="admin-table-wrap" style="margin-top: 0.8rem;">
-                <table class="admin-table" aria-label="Leads table">
-                  <thead>
-                    <tr>
-                      <th>Conversation Date/Time</th>
-                      <th>Name</th>
-                      <th>Mobile</th>
-                      <th>Address</th>
-                      <th>Monthly Salary</th>
-                      <th>Summarized Financial Insights</th>
-                    </tr>
-                  </thead>
-                  <tbody id="leads-tbody"></tbody>
-                </table>
-
-                <div class="admin-empty hidden" id="empty-state">
-                  <div class="admin-title" style="font-size: 1rem;">No leads found</div>
-                  <div class="admin-subtitle">Try clearing the search or refreshing.</div>
-                </div>
-              </div>
+        <aside class="admin-right-rail">
+          <section class="admin-card admin-card-inner">
+            <div class="admin-title">Quick Stats</div>
+            <div class="admin-kv quick-stats-grid">
+              <div class="k">Total leads</div><div class="v" id="stat-total">0</div>
+              <div class="k">Today</div><div class="v">Auto-refresh</div>
+              <div class="k">Status</div><div class="v">Operational</div>
             </div>
           </section>
-        </div>
+          <section class="admin-card admin-card-inner">
+            <div class="admin-title">Recent Activity</div>
+            <div class="admin-subtitle rail-copy">New lead events and updates appear here after refresh.</div>
+          </section>
+          <section class="admin-card admin-card-inner">
+            <div class="admin-title">Advisor Actions</div>
+            <button class="admin-btn primary action-btn" type="button">Review New Leads</button>
+          </section>
+        </aside>
       </div>
     </main>
   </div>
 
   <script>
-    // Theme toggle (same behavior as main app)
     (function () {
       const btn = document.getElementById('theme-toggle');
       const key = 'financeai_theme';
       function setTheme(t) {
         document.documentElement.setAttribute('data-theme', t);
         localStorage.setItem(key, t);
-        btn.textContent = t === 'light' ? '🌙' : '☀️';
+        btn.textContent = t === 'light' ? 'Moon' : 'Sun';
       }
       const saved = localStorage.getItem(key);
       setTheme(saved === 'light' ? 'light' : 'dark');
@@ -132,3 +154,4 @@
   <script src="admin.js"></script>
 </body>
 </html>
+
